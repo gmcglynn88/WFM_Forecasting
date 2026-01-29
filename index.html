@@ -424,6 +424,7 @@
       display: flex;
       border-bottom: 1px solid var(--border-color);
       margin-bottom: 20px;
+      overflow-x: auto;
     }
     
     .view-tab {
@@ -436,6 +437,7 @@
       cursor: pointer;
       color: var(--text-light);
       transition: all 0.2s;
+      white-space: nowrap;
     }
     
     .view-tab.active {
@@ -575,13 +577,13 @@
       transition: width 0.3s ease;
     }
 
-    /* AHT Pattern Grid - FIXED LAYOUT */
+    /* AHT Pattern Grid - IMPROVED LAYOUT */
     .aht-pattern-grid {
       display: grid;
       grid-template-columns: repeat(6, 1fr);
-      gap: 8px;
+      gap: 10px;
       margin-top: 10px;
-      padding: 10px;
+      padding: 15px;
       background: rgba(99, 171, 143, 0.03);
       border-radius: 8px;
       border: 1px solid var(--border-color);
@@ -589,22 +591,28 @@
     
     .aht-cell {
       text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
     
     .aht-label {
       font-size: 11px;
       font-weight: 600;
       color: var(--secondary-color);
-      margin-bottom: 4px;
+      margin-bottom: 6px;
       white-space: nowrap;
+      text-align: center;
+      line-height: 1.2;
     }
     
     .aht-input {
-      width: 70px;
+      width: 75px;
       text-align: center;
-      margin: 0 auto;
-      padding: 6px;
+      padding: 8px 4px;
       font-size: 13px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
     }
 
     /* Generating Screen */
@@ -747,6 +755,17 @@
       .modification-controls .row {
         grid-template-columns: 1fr;
       }
+      
+      .view-tabs {
+        flex-wrap: wrap;
+      }
+      
+      .view-tab {
+        flex: 1;
+        min-width: 120px;
+        text-align: center;
+        padding: 10px 12px;
+      }
     }
 
     /* Custom scrollbar */
@@ -787,6 +806,7 @@
       gap: 8px;
       margin-bottom: 20px;
       align-items: center;
+      flex-wrap: wrap;
     }
     
     .interval-btn {
@@ -845,7 +865,7 @@
       background: rgba(139, 92, 246, 0.05);
       border: 1px solid rgba(139, 92, 246, 0.2);
       border-radius: 8px;
-      padding: 16px;
+      padding: 20px;
       margin-top: 20px;
     }
     
@@ -867,6 +887,17 @@
       border-radius: 4px;
       margin-top: 10px;
       font-size: 13px;
+    }
+    
+    .modification-note {
+      background: rgba(99, 171, 143, 0.05);
+      border-left: 4px solid var(--primary-color);
+      border-radius: 8px;
+      padding: 14px;
+      margin-top: 20px;
+      font-size: 13px;
+      color: var(--text-color);
+      line-height: 1.5;
     }
   </style>
   <!-- Chart.js Library -->
@@ -914,9 +945,6 @@
           </button>
           <button class="tab" data-tab="import">
             <i class="fas fa-file-import"></i> Import Forecast
-          </button>
-          <button class="tab" data-tab="modification">
-            <i class="fas fa-sliders-h"></i> Modification
           </button>
         </div>
 
@@ -1037,104 +1065,16 @@
         <!-- Import Data Tab -->
         <div id="importContent" class="tab-content">
           <div class="form-group">
-            <label for="importFile">Import Forecast Data (CSV)</label>
-            <input type="file" id="importFile" accept=".csv">
+            <label for="importFile">Import Forecast Data (Excel/CSV)</label>
+            <input type="file" id="importFile" accept=".csv,.xlsx,.xls">
             <div class="help-text">
-              Format: date, time, queue, volume, aht, required_staff<br>
-              Or use generated forecasts from other systems
+              Format: date, time, volume, aht (seconds)<br>
+              Optional: required_staff, service_level, occupancy
             </div>
-          </div>
-
-          <div class="form-group">
-            <label for="importSource">Data Source</label>
-            <select id="importSource">
-              <option value="genesys">Genesys Cloud</option>
-              <option value="nice">NICE CXone</option>
-              <option value="verint">Verint</option>
-              <option value="custom">Custom Format</option>
-            </select>
           </div>
 
           <div class="note">
-            <strong><i class="fas fa-info-circle"></i> Note:</strong> Imported data will be validated and Erlang C calculations will be applied to ensure consistency.
-          </div>
-        </div>
-
-        <!-- Modification Tab -->
-        <div id="modificationContent" class="tab-content">
-          <div class="form-group">
-            <label for="modificationType">Modification Type</label>
-            <select id="modificationType">
-              <option value="volume">Volume Adjustment</option>
-              <option value="aht">AHT Adjustment</option>
-            </select>
-          </div>
-
-          <div class="row">
-            <div class="form-group">
-              <label for="modificationScope">Scope</label>
-              <select id="modificationScope">
-                <option value="interval">Specific Interval</option>
-                <option value="daily">Daily Level</option>
-                <option value="range">Date Range</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label for="modificationMethod">Method</label>
-              <select id="modificationMethod">
-                <option value="percentage">Percentage Change (%)</option>
-                <option value="absolute">Absolute Value</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="modification-controls">
-            <div class="row">
-              <div class="form-group">
-                <label for="modificationDate">Date</label>
-                <input type="date" id="modificationDate">
-              </div>
-              
-              <div class="form-group" id="intervalTimeGroup">
-                <label for="modificationTime">Time</label>
-                <select id="modificationTime">
-                  <!-- Will be populated with intervals -->
-                </select>
-              </div>
-            </div>
-
-            <div class="row" id="rangeControls" style="display: none;">
-              <div class="form-group">
-                <label for="modificationStartDate">Start Date</label>
-                <input type="date" id="modificationStartDate">
-              </div>
-              
-              <div class="form-group">
-                <label for="modificationEndDate">End Date</label>
-                <input type="date" id="modificationEndDate">
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label for="modificationValue">Adjustment Value</label>
-              <input type="number" id="modificationValue" placeholder="e.g., 10 for 10% or +5 volume">
-              <div class="help-text" id="modificationHelp">
-                Enter percentage (e.g., 10 for 10% increase) or absolute value
-              </div>
-            </div>
-
-            <button id="applyModificationBtn" class="secondary icon-btn" style="width: auto;">
-              <i class="fas fa-edit"></i> Apply Modification
-            </button>
-            <button id="clearModificationsBtn" class="secondary icon-btn" style="width: auto; margin-left: 10px;">
-              <i class="fas fa-undo"></i> Clear All Modifications
-            </button>
-          </div>
-
-          <div class="modification-summary" id="modificationSummary" style="display: none;">
-            <strong><i class="fas fa-history"></i> Active Modifications:</strong>
-            <div id="modificationList"></div>
+            <strong><i class="fas fa-info-circle"></i> Note:</strong> Imported forecast data will be validated and used directly for Erlang C calculations. AHT values from the imported file will be used.
           </div>
         </div>
       </div>
@@ -1207,7 +1147,7 @@
           </div>
         </div>
 
-        <!-- AHT Variation Pattern Card - Hidden for import tab -->
+        <!-- AHT Variation Pattern Card - Only shown for Manual Input -->
         <div class="card" id="ahtPatternCard">
           <div class="card-title">
             <h2>AHT Variation Pattern</h2>
@@ -1326,7 +1266,7 @@
         </div>
       </div>
 
-      <!-- View Tabs -->
+      <!-- View Tabs - Now includes Modification tab -->
       <div class="view-tabs">
         <button class="view-tab active" data-view="graphical">
           <i class="fas fa-chart-area"></i> Graphical View
@@ -1334,13 +1274,13 @@
         <button class="view-tab" data-view="table">
           <i class="fas fa-table"></i> Table View
         </button>
-        <button class="view-tab" data-view="comparison">
-          <i class="fas fa-exchange-alt"></i> Comparison View
+        <button class="view-tab" data-view="modification">
+          <i class="fas fa-sliders-h"></i> Modify Forecast
         </button>
       </div>
 
-      <!-- Interval Selector -->
-      <div class="interval-selector">
+      <!-- Interval Selector - Only for Graphical and Table views -->
+      <div class="interval-selector" id="intervalSelector" style="display: flex;">
         <span style="font-weight: 600; margin-right: 12px; align-self: center; color: var(--text-color);">Interval:</span>
         <button class="interval-btn" data-interval="15">15 min</button>
         <button class="interval-btn" data-interval="30">30 min</button>
@@ -1402,13 +1342,103 @@
         </div>
       </div>
 
-      <!-- Comparison View -->
-      <div id="comparisonView" class="view-content">
-        <div class="cards-row">
+      <!-- Modification View -->
+      <div id="modificationView" class="view-content">
+        <div class="card">
+          <div class="card-title">
+            <h2>Forecast Modification</h2>
+            <span class="badge modification-badge">Adjust Parameters</span>
+          </div>
+          
+          <div class="modification-controls">
+            <div class="form-group">
+              <label for="modificationType">Adjustment Type</label>
+              <select id="modificationType">
+                <option value="volume">Volume</option>
+                <option value="aht">AHT</option>
+              </select>
+            </div>
+
+            <div class="row">
+              <div class="form-group">
+                <label for="modificationScope">Scope</label>
+                <select id="modificationScope">
+                  <option value="interval">Specific Interval</option>
+                  <option value="daily">Daily Level</option>
+                  <option value="range">Date Range</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="modificationMethod">Method</label>
+                <select id="modificationMethod">
+                  <option value="percentage">Percentage (%)</option>
+                  <option value="absolute">Absolute Value</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="form-group">
+                <label for="modificationDate">Date</label>
+                <input type="date" id="modificationDate">
+              </div>
+              
+              <div class="form-group" id="intervalTimeGroup">
+                <label for="modificationTime">Time</label>
+                <select id="modificationTime">
+                  <!-- Will be populated with intervals -->
+                </select>
+              </div>
+            </div>
+
+            <div class="row" id="rangeControls" style="display: none;">
+              <div class="form-group">
+                <label for="modificationStartDate">Start Date</label>
+                <input type="date" id="modificationStartDate">
+              </div>
+              
+              <div class="form-group">
+                <label for="modificationEndDate">End Date</label>
+                <input type="date" id="modificationEndDate">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="modificationValue">Adjustment Value</label>
+              <input type="number" id="modificationValue" placeholder="e.g., 10 for 10% or +5 volume">
+              <div class="help-text" id="modificationHelp">
+                Enter percentage (e.g., 10 for 10% increase) or absolute value
+              </div>
+            </div>
+
+            <div class="btn-group">
+              <button id="applyModificationBtn" class="secondary icon-btn">
+                <i class="fas fa-edit"></i> Apply Modification
+              </button>
+              <button id="clearModificationsBtn" class="secondary icon-btn">
+                <i class="fas fa-undo"></i> Clear All Modifications
+              </button>
+            </div>
+          </div>
+
+          <div class="modification-summary" id="modificationSummary" style="display: none;">
+            <strong><i class="fas fa-history"></i> Active Modifications:</strong>
+            <div id="modificationList"></div>
+          </div>
+          
+          <div class="modification-note">
+            <strong><i class="fas fa-info-circle"></i> How modifications work:</strong> 
+            Adjustments are applied to the forecast data, and staffing requirements are recalculated using the Erlang C formula. 
+            You can modify specific intervals, entire days, or date ranges. Changes are cumulative and can be cleared at any time.
+          </div>
+        </div>
+        
+        <div class="cards-row" style="margin-top: 20px;">
           <div class="card">
             <div class="card-title">
               <h2>Impact Summary</h2>
-              <span class="badge modification-badge">Modifications</span>
+              <span class="badge modification-badge">Changes</span>
             </div>
             <div id="impactSummary">
               <!-- Will be populated with modification impact -->
@@ -1489,12 +1519,12 @@
     const ahtInputs = document.querySelectorAll('.aht-input');
     const viewTabs = document.querySelectorAll('.view-tab');
     const intervalButtons = document.querySelectorAll('.interval-btn');
+    const intervalSelector = document.getElementById('intervalSelector');
     const erlangModal = document.getElementById('erlangModal');
     const modalCloseBtn = document.getElementById('modalCloseBtn');
     const erlangInfoBtn = document.getElementById('erlangInfoBtn');
     const ahtPatternCard = document.getElementById('ahtPatternCard');
     const importAhtNote = document.getElementById('importAhtNote');
-    const modificationControls = document.querySelector('.modification-controls');
     const modificationSummary = document.getElementById('modificationSummary');
     const modificationList = document.getElementById('modificationList');
     const modificationScope = document.getElementById('modificationScope');
@@ -1575,22 +1605,16 @@
         forecastData.type = tabName;
         
         // Show/hide AHT pattern based on tab
-        if (tabName === 'import') {
-          ahtPatternCard.style.display = 'none';
-          importAhtNote.style.display = 'block';
-        } else {
+        if (tabName === 'manual') {
           ahtPatternCard.style.display = 'block';
           importAhtNote.style.display = 'none';
-        }
-        
-        // Show/hide modification controls
-        if (tabName === 'modification') {
-          modificationControls.style.display = 'block';
-          modificationSummary.style.display = 'block';
-          loadModificationData();
         } else {
-          modificationControls.style.display = 'none';
-          modificationSummary.style.display = 'none';
+          ahtPatternCard.style.display = 'none';
+          if (tabName === 'import') {
+            importAhtNote.style.display = 'block';
+          } else {
+            importAhtNote.style.display = 'none';
+          }
         }
         
         updateStatus(`Ready for ${tabName} forecast input`);
@@ -1614,6 +1638,18 @@
             content.classList.add('active');
           }
         });
+        
+        // Show/hide interval selector
+        if (viewName === 'modification') {
+          intervalSelector.style.display = 'none';
+        } else {
+          intervalSelector.style.display = 'flex';
+        }
+        
+        // Load modification data if needed
+        if (viewName === 'modification' && forecastData.results) {
+          loadModificationData();
+        }
       });
     });
 
@@ -1815,7 +1851,9 @@
           fte: Math.max(0.125, Math.ceil(fte * 8) / 8),
           serviceLevel: Math.min(1, serviceLevel),
           occupancy: Math.min(1, occupancy),
-          workHours: (volume * aht) / 3600
+          workHours: (volume * aht) / 3600,
+          originalVolume: item.originalVolume || item.volume,
+          originalAht: item.originalAht || item.aht
         };
       });
     }
@@ -1855,6 +1893,7 @@
         }
         updateModificationSummary();
         updateForecastDisplay();
+        updateModificationViews();
       }
     });
 
@@ -1963,14 +2002,6 @@
         } else if (forecastType === 'import') {
           updateGeneratingProgress(40, 'Processing imported data...');
           forecastResults = await generateImportForecast(params);
-        } else if (forecastType === 'modification') {
-          updateGeneratingProgress(40, 'Applying modifications...');
-          if (!forecastData.results) {
-            alert('Please generate a forecast first before modifying');
-            hideGeneratingScreen();
-            return;
-          }
-          forecastResults = forecastData.results;
         }
         
         updateGeneratingProgress(60, 'Applying Erlang C calculations...');
@@ -1990,6 +2021,7 @@
           hideGeneratingScreen();
           showResults();
           updateForecastDisplay();
+          updateModificationViews();
           updateStatus('Forecast generated successfully');
         }, 500);
         
@@ -2345,9 +2377,6 @@
       
       // Update table
       updateTable(displayData, interval);
-      
-      // Update modification views
-      updateModificationViews();
     }
 
     // Aggregate data by interval
@@ -2448,7 +2477,6 @@
       const totalFTE = data.reduce((sum, r) => sum + r.fte, 0);
       const peakStaff = Math.max(...data.map(r => r.requiredWithShrinkage));
       const avgSL = data.reduce((sum, r) => sum + r.serviceLevel, 0) / data.length;
-      const totalHours = data.reduce((sum, r) => sum + r.workHours, 0);
       
       // Calculate modified FTE if we have original results
       let modifiedFTE = totalFTE;
@@ -2857,6 +2885,9 @@
     
     // Set default forecast type
     forecastData.type = 'manual';
+    
+    // Initially hide AHT pattern card (it will show for manual tab)
+    ahtPatternCard.style.display = 'none';
   </script>
 </body>
 </html>
