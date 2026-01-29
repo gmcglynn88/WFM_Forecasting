@@ -47,8 +47,17 @@
     /* Top Bar - moved Erlang button here */
     .top-bar {
       display: flex;
-      justify-content: flex-end;
+      justify-content: space-between;
+      align-items: center;
       margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    .top-bar-right {
+      display: flex;
+      align-items: center;
+      gap: 15px;
     }
 
     .status-indicator {
@@ -57,9 +66,8 @@
       border-radius: 8px;
       border: 1px solid var(--border-color);
       font-size: 14px;
-      min-width: 200px;
       text-align: center;
-      margin-left: auto;
+      min-width: 200px;
     }
 
     /* Main Layout */
@@ -463,10 +471,10 @@
       font-weight: 700;
     }
     
-    canvas {
-      display: block;
-      width: 100% !important;
-      height: 300px !important;
+    .chart-container {
+      position: relative;
+      height: 300px;
+      width: 100%;
     }
 
     /* Forecast Table */
@@ -730,7 +738,13 @@
       
       .top-bar {
         flex-direction: column;
+        align-items: stretch;
         gap: 12px;
+      }
+      
+      .top-bar-right {
+        flex-direction: column;
+        width: 100%;
       }
       
       .status-indicator {
@@ -824,14 +838,7 @@
       color: var(--primary-color) !important;
     }
     
-    /* Chart styling - consistent across all views */
-    .chart-container {
-      position: relative;
-      height: 300px;
-      width: 100%;
-    }
-    
-    /* Erlang C Info Button - MOVED TO TOP RIGHT */
+    /* Erlang C Info Button - FIXED POSITION */
     .erlang-info-btn {
       background: rgba(99, 171, 143, 0.1);
       border: 1px solid var(--primary-color);
@@ -844,7 +851,8 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      margin-right: 10px;
+      white-space: nowrap;
+      height: fit-content;
     }
     
     .erlang-info-btn:hover {
@@ -975,11 +983,14 @@
   <div class="container">
     <!-- Top Bar with Erlang Info Button -->
     <div class="top-bar">
-      <button id="erlangInfoBtn" class="erlang-info-btn">
-        <i class="fas fa-calculator"></i> Erlang C Formula Info
-      </button>
-      <div class="status-indicator" id="statusIndicator">
-        <i class="fas fa-check-circle"></i> Ready for forecast input
+      <div style="flex: 1;"></div> <!-- Spacer -->
+      <div class="top-bar-right">
+        <button id="erlangInfoBtn" class="erlang-info-btn">
+          <i class="fas fa-calculator"></i> Erlang C Formula Info
+        </button>
+        <div class="status-indicator" id="statusIndicator">
+          <i class="fas fa-check-circle"></i> Ready for forecast input
+        </div>
       </div>
     </div>
 
@@ -1601,25 +1612,41 @@
       </div>
       <div class="modal-body">
         <h3>What is Erlang C?</h3>
-        <p>Erlang C is a mathematical formula used in queueing theory to calculate the probability that a customer will have to wait for service in a system with multiple servers (agents).</p>
+        <p>Erlang C is a mathematical model used in call centers and customer service operations to calculate how many staff members (agents) you need to handle incoming contacts while maintaining your service level targets.</p>
         
-        <h3>Key Inputs:</h3>
+        <h3>In Simple Terms:</h3>
+        <p>Think of it like this: If you know how many customers will call, how long each call takes, and what level of service you want to provide (like answering 80% of calls within 20 seconds), Erlang C tells you exactly how many agents you need at any given time.</p>
+        
+        <h3>Key Inputs Explained:</h3>
         <ul>
-          <li><strong>Volume:</strong> Number of contacts expected</li>
-          <li><strong>AHT:</strong> Average Handle Time per contact</li>
-          <li><strong>Service Level:</strong> Target percentage of contacts answered within target time</li>
-          <li><strong>Target Answer Time:</strong> Maximum acceptable wait time</li>
-          <li><strong>Shrinkage:</strong> Time agents are unavailable (breaks, meetings, etc.)</li>
+          <li><strong>Volume:</strong> How many contacts (calls, chats, emails) you expect</li>
+          <li><strong>AHT (Average Handle Time):</strong> How long each contact typically takes from start to finish</li>
+          <li><strong>Service Level Target:</strong> What percentage of contacts you want to answer within your target time (e.g., 80% answered within 20 seconds)</li>
+          <li><strong>Target Answer Time:</strong> Your goal for how quickly to answer contacts</li>
+          <li><strong>Shrinkage:</strong> Time agents aren't available (breaks, meetings, training, etc.)</li>
+          <li><strong>Maximum Occupancy:</strong> How "busy" you want agents to be (typically 85-90%)</li>
         </ul>
         
-        <h3>How it Works:</h3>
-        <p>The formula calculates the minimum number of agents required to achieve your service level target, considering contact arrival patterns and average handle times.</p>
+        <h3>How It Works in Practice:</h3>
+        <ol>
+          <li><strong>Calculate Workload:</strong> Multiply contacts per hour by average handle time to get the total work in seconds</li>
+          <li><strong>Convert to Erlangs:</strong> Divide total work by 3,600 (seconds in an hour) to get the traffic intensity</li>
+          <li><strong>Find Required Agents:</strong> The formula calculates the minimum number of agents needed to hit your service level goal</li>
+          <li><strong>Adjust for Real World:</strong> Add extra staff to account for breaks, meetings, and other offline time (shrinkage)</li>
+        </ol>
         
-        <p><strong>Formula:</strong> P(wait) = (Aⁿ/n!) / (Σ(Aᵏ/k!) + (Aⁿ/n!)*((n/(n-A))))</p>
-        <p>Where A = offered traffic (Erlangs), n = number of agents</p>
+        <h3>Real-World Example:</h3>
+        <p>If you expect 100 calls per hour, each taking 300 seconds (5 minutes), and you want to answer 80% within 20 seconds with 30% shrinkage:</p>
+        <ul>
+          <li><strong>Workload:</strong> 100 calls × 300 seconds = 30,000 seconds of work</li>
+          <li><strong>Traffic:</strong> 30,000 ÷ 3,600 = 8.33 Erlangs</li>
+          <li><strong>Base Agents Needed:</strong> About 13 agents (to achieve 80% service level)</li>
+          <li><strong>With Shrinkage:</strong> 13 ÷ (1 - 0.30) = ~19 agents required on schedule</li>
+        </ul>
         
         <div class="note" style="margin-top: 20px;">
-          <strong><i class="fas fa-info-circle"></i> Note:</strong> This tool uses Erlang C calculations to provide accurate staffing forecasts based on your specific parameters.
+          <strong><i class="fas fa-lightbulb"></i> Simple Rule of Thumb:</strong> 
+          For every Erlang of traffic (1 hour of call handling work), you typically need 1.1-1.3 agents to maintain good service levels, plus additional staff to cover breaks and meetings.
         </div>
       </div>
     </div>
@@ -1680,11 +1707,11 @@
       historicalData: null
     };
 
-    // Chart instances
-    let volumeChart = null;
-    let staffingChart = null;
-    let slChart = null;
-    let ahtChart = null;
+    // Chart instances - FIXED: Use proper variable names instead of window object
+    let volumeChartInstance = null;
+    let staffingChartInstance = null;
+    let slChartInstance = null;
+    let ahtChartInstance = null;
 
     // Set default historical dates
     function setDefaultHistoricalDates() {
@@ -2753,7 +2780,7 @@
       document.getElementById('resultAvgSL').textContent = (avgSL * 100).toFixed(1) + '%';
     }
 
-    // Update charts
+    // Update charts - FIXED: Use proper chart instance variables
     function updateCharts(data, interval) {
       const chartData = interval === 'day' ? data : data.slice(0, 168);
       
@@ -2767,74 +2794,87 @@
       const modifiedAHT = chartData.map(item => item.aht);
       
       // Volume Chart
-      updateComparisonChart('volumeChart', labels, originalVolumes, modifiedVolumes, 
+      updateComparisonChart('volumeChart', volumeChartInstance, labels, originalVolumes, modifiedVolumes, 
                            'Original Volume', 'Modified Volume', 'bar');
       
       // Staffing Chart - Now shows Original vs Adjusted
-      updateComparisonChart('staffingChart', labels, originalStaff, adjustedStaff,
+      updateComparisonChart('staffingChart', staffingChartInstance, labels, originalStaff, adjustedStaff,
                            'Original Staff', 'Adjusted Staff', 'line');
       
       // Service Level Chart
-      updateSingleChart('slChart', labels, serviceLevels, 'Service Level %', 'line');
+      updateSingleChart('slChart', slChartInstance, labels, serviceLevels, 'Service Level %', 'line');
       
       // AHT Chart
-      updateComparisonChart('ahtChart', labels, originalAHT, modifiedAHT,
+      updateComparisonChart('ahtChart', ahtChartInstance, labels, originalAHT, modifiedAHT,
                            'Original AHT', 'Modified AHT', 'line');
     }
 
-    // Update a single chart
-    function updateSingleChart(canvasId, labels, data, label, type) {
+    // Update a single chart - FIXED: Proper chart instance management
+    function updateSingleChart(canvasId, chartInstance, labels, data, label, type) {
       const ctx = document.getElementById(canvasId).getContext('2d');
       
       // Destroy existing chart if it exists
-      if (window[canvasId]) {
-        window[canvasId].destroy();
+      if (chartInstance) {
+        chartInstance.destroy();
       }
       
       const bgColor = type === 'line' ? 'rgba(22, 163, 74, 0.2)' : 'rgba(74, 140, 125, 0.7)';
       const borderColor = type === 'line' ? 'rgba(22, 163, 74, 1)' : 'rgba(74, 140, 125, 1)';
       
-      window[canvasId] = new Chart(ctx, {
-        type: type,
-        data: {
-          labels: labels,
-          datasets: [{
-            label: label,
-            data: data,
-            backgroundColor: bgColor,
-            borderColor: borderColor,
-            borderWidth: type === 'line' ? 2 : 1,
-            fill: type === 'line',
-            tension: 0.4
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              position: 'top',
-            }
+      // Return the chart instance
+      if (canvasId === 'slChart') {
+        slChartInstance = new Chart(ctx, {
+          type: type,
+          data: {
+            labels: labels,
+            datasets: [{
+              label: label,
+              data: data,
+              backgroundColor: bgColor,
+              borderColor: borderColor,
+              borderWidth: type === 'line' ? 2 : 1,
+              fill: type === 'line',
+              tension: 0.4
+            }]
           },
-          scales: {
-            y: {
-              beginAtZero: true
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'top',
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                title: {
+                  display: true,
+                  text: label.includes('Service Level') ? 'Percentage (%)' : 'Value'
+                }
+              },
+              x: {
+                ticks: {
+                  maxTicksLimit: 10
+                }
+              }
             }
           }
-        }
-      });
+        });
+      }
     }
 
-    // Update comparison chart
-    function updateComparisonChart(canvasId, labels, data1, data2, label1, label2, type) {
+    // Update comparison chart - FIXED: Proper chart instance management
+    function updateComparisonChart(canvasId, chartInstance, labels, data1, data2, label1, label2, type) {
       const ctx = document.getElementById(canvasId).getContext('2d');
       
       // Destroy existing chart if it exists
-      if (window[canvasId]) {
-        window[canvasId].destroy();
+      if (chartInstance) {
+        chartInstance.destroy();
       }
       
-      window[canvasId] = new Chart(ctx, {
+      // Create new chart and assign to correct variable
+      const newChart = new Chart(ctx, {
         type: type,
         data: {
           labels: labels,
@@ -2869,11 +2909,31 @@
           },
           scales: {
             y: {
-              beginAtZero: true
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: canvasId === 'volumeChart' ? 'Volume' : 
+                      canvasId === 'staffingChart' ? 'Staff Required' :
+                      canvasId === 'ahtChart' ? 'AHT (seconds)' : 'Value'
+              }
+            },
+            x: {
+              ticks: {
+                maxTicksLimit: 10
+              }
             }
           }
         }
       });
+      
+      // Assign to correct chart instance variable
+      if (canvasId === 'volumeChart') {
+        volumeChartInstance = newChart;
+      } else if (canvasId === 'staffingChart') {
+        staffingChartInstance = newChart;
+      } else if (canvasId === 'ahtChart') {
+        ahtChartInstance = newChart;
+      }
     }
 
     // Update table
