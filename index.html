@@ -770,11 +770,12 @@
       font-size: 16px;
     }
     
-    /* Interval selector */
+    /* Interval selector - FIXED VISIBILITY */
     .interval-selector {
       display: flex;
       gap: 8px;
       margin-bottom: 20px;
+      align-items: center;
     }
     
     .interval-btn {
@@ -786,17 +787,26 @@
       font-weight: 600;
       cursor: pointer;
       transition: all 0.2s;
+      color: var(--text-color) !important; /* Force dark text */
     }
     
     .interval-btn.active {
       background: var(--primary-color);
-      color: white;
+      color: white !important; /* Force white text when active */
       border-color: var(--primary-color);
     }
     
     .interval-btn:hover:not(.active) {
       background: rgba(99, 171, 143, 0.1);
       border-color: var(--primary-color);
+      color: var(--primary-color) !important;
+    }
+    
+    /* Chart styling - consistent across all views */
+    .chart-container {
+      position: relative;
+      height: 300px;
+      width: 100%;
     }
   </style>
   <!-- Chart.js Library -->
@@ -853,8 +863,8 @@
             <label for="historicalFile">Upload Historical Data (CSV)</label>
             <input type="file" id="historicalFile" accept=".csv">
             <div class="help-text">
-              Required columns: datetime, queue, volume, aht_seconds<br>
-              Optional columns: service_level, occupancy, abandonment_rate
+              Required columns: datetime, volume, aht_seconds<br>
+              Optional columns: queue, service_level, occupancy, abandonment_rate
             </div>
           </div>
 
@@ -884,7 +894,7 @@
           </div>
 
           <div class="note">
-            <strong><i class="fas fa-info-circle"></i> How it works:</strong> The forecast will analyze historical patterns, apply seasonality adjustments and growth rates, then distribute volume across intervals using Erlang C calculations.
+            <strong><i class="fas fa-info-circle"></i> How it works:</strong> The forecast will analyze historical patterns including actual AHT values, apply seasonality adjustments and growth rates, then distribute volume across intervals using Erlang C calculations.
           </div>
         </div>
 
@@ -1027,7 +1037,7 @@
             <div class="form-group">
               <label for="avgAHT">Average Handle Time (seconds)</label>
               <input type="number" id="avgAHT" min="1" value="300" step="1">
-              <div class="help-text">Average contact duration</div>
+              <div class="help-text">Average contact duration (used for manual forecasts)</div>
             </div>
 
             <div class="form-group">
@@ -1078,7 +1088,7 @@
                 <input type="number" class="aht-input" data-period="5" min="50" max="200" value="85" step="1">
               </div>
             </div>
-            <div class="help-text">Enter percentages relative to average AHT (100% = average)</div>
+            <div class="help-text">Enter percentages relative to average AHT (100% = average). Only used for manual forecasts.</div>
           </div>
         </div>
       </div>
@@ -1172,9 +1182,9 @@
         </button>
       </div>
 
-      <!-- Interval Selector -->
+      <!-- Interval Selector - FIXED VISIBILITY -->
       <div class="interval-selector">
-        <span style="font-weight: 600; margin-right: 12px; align-self: center;">Interval:</span>
+        <span style="font-weight: 600; margin-right: 12px; align-self: center; color: var(--text-color);">Interval:</span>
         <button class="interval-btn" data-interval="15">15 min</button>
         <button class="interval-btn" data-interval="30">30 min</button>
         <button class="interval-btn active" data-interval="60">60 min</button>
@@ -1186,19 +1196,27 @@
         <div class="charts-container">
           <div class="chart-card">
             <h3 class="chart-title">Volume Forecast</h3>
-            <canvas id="volumeChart"></canvas>
+            <div class="chart-container">
+              <canvas id="volumeChart"></canvas>
+            </div>
           </div>
           <div class="chart-card">
             <h3 class="chart-title">Staffing Requirements</h3>
-            <canvas id="staffingChart"></canvas>
+            <div class="chart-container">
+              <canvas id="staffingChart"></canvas>
+            </div>
           </div>
           <div class="chart-card">
             <h3 class="chart-title">Service Level Forecast</h3>
-            <canvas id="slChart"></canvas>
+            <div class="chart-container">
+              <canvas id="slChart"></canvas>
+            </div>
           </div>
           <div class="chart-card">
             <h3 class="chart-title">Occupancy Levels</h3>
-            <canvas id="occupancyChart"></canvas>
+            <div class="chart-container">
+              <canvas id="occupancyChart"></canvas>
+            </div>
           </div>
         </div>
       </div>
@@ -1299,7 +1317,8 @@
       parameters: {},
       results: null,
       rawData: [],
-      intervalView: '60'
+      intervalView: '60',
+      historicalData: null
     };
 
     // Initialize pattern visualization
@@ -1622,11 +1641,260 @@
       return results;
     }
 
-    // Generate historical forecast (simplified)
+    // Generate historical forecast with actual historical AHT
     async function generateHistoricalForecast(params) {
-      // In a real implementation, this would process uploaded historical data
-      // For now, return mock data
-      return generateMockData(params);
+      const fileInput = document.getElementById('historicalFile');
+      if (!fileInput.files || fileInput.files.length === 0) {
+        // Use mock data if no file uploaded
+        return generateHistoricalMockData(params);
+      }
+      
+      const file = fileInput.files[0];
+      const text = await file.text();
+      
+      // Parse CSV
+      const rows = parseCSV(text);
+      if (rows.length === 0) {
+        throw new Error('No valid data found in file');
+      }
+      
+      // Store historical data for reference
+      forecastData.historicalData = rows;
+      
+      // Calculate average AHT from historical data
+      let totalAHT = 0;
+      let ahtCount = 0;
+      const timePeriodAHT = {};
+      
+      rows.forEach(row => {
+        const aht = parseFloat(row.aht_seconds) || parseFloat(row.aht) || 0;
+        if (aht > 0) {
+          totalAHT += aht;
+          ahtCount++;
+          
+          // Parse datetime to get hour
+          let hour = 12; // Default to noon
+          if (row.datetime) {
+            const dt = new Date(row.datetime);
+            hour = dt.getHours();
+          } else if (row.time) {
+            const timeParts = row.time.split(':');
+            hour = parseInt(timeParts[0]) || 12;
+          }
+          
+          const period = Math.floor(hour / 4); // Group by 4-hour periods
+          if (!timePeriodAHT[period]) {
+            timePeriodAHT[period] = { total: 0, count: 0 };
+          }
+          timePeriodAHT[period].total += aht;
+          timePeriodAHT[period].count++;
+        }
+      });
+      
+      const avgAHT = ahtCount > 0 ? totalAHT / ahtCount : params.avgAHT;
+      
+      // Calculate hourly patterns from historical data
+      const hourlyPattern = Array(24).fill(0);
+      const hourlyAHT = Array(24).fill(avgAHT);
+      const hourCounts = Array(24).fill(0);
+      
+      rows.forEach(row => {
+        const volume = parseFloat(row.volume) || 0;
+        const aht = parseFloat(row.aht_seconds) || parseFloat(row.aht) || avgAHT;
+        
+        let hour = 12; // Default to noon
+        if (row.datetime) {
+          const dt = new Date(row.datetime);
+          hour = dt.getHours();
+        } else if (row.time) {
+          const timeParts = row.time.split(':');
+          hour = parseInt(timeParts[0]) || 12;
+        }
+        
+        if (hour >= 0 && hour < 24) {
+          hourlyPattern[hour] += volume;
+          hourlyAHT[hour] = ((hourlyAHT[hour] * hourCounts[hour]) + aht) / (hourCounts[hour] + 1);
+          hourCounts[hour]++;
+        }
+      });
+      
+      // Normalize hourly pattern
+      const totalVolume = hourlyPattern.reduce((sum, vol) => sum + vol, 0);
+      if (totalVolume > 0) {
+        hourlyPattern.forEach((vol, i) => {
+          hourlyPattern[i] = vol / totalVolume;
+        });
+      } else {
+        // Fallback to standard pattern
+        const patterns = {
+          standard: [0.02, 0.03, 0.04, 0.06, 0.08, 0.10, 0.12, 0.14, 0.16, 0.18, 0.20, 0.22, 0.20, 0.18, 0.16, 0.14, 0.12, 0.10, 0.08, 0.06, 0.04, 0.03, 0.02, 0.01]
+        };
+        hourlyPattern.splice(0, 24, ...patterns.standard);
+      }
+      
+      // Calculate day of week pattern from historical data
+      const dayPattern = Array(7).fill(0);
+      const dayAHT = Array(7).fill(avgAHT);
+      const dayCounts = Array(7).fill(0);
+      
+      rows.forEach(row => {
+        const volume = parseFloat(row.volume) || 0;
+        const aht = parseFloat(row.aht_seconds) || parseFloat(row.aht) || avgAHT;
+        
+        let day = 0; // Default to Sunday
+        if (row.datetime) {
+          const dt = new Date(row.datetime);
+          day = dt.getDay();
+        }
+        
+        dayPattern[day] += volume;
+        dayAHT[day] = ((dayAHT[day] * dayCounts[day]) + aht) / (dayCounts[day] + 1);
+        dayCounts[day]++;
+      });
+      
+      // Normalize day pattern
+      const totalDayVolume = dayPattern.reduce((sum, vol) => sum + vol, 0);
+      if (totalDayVolume > 0) {
+        dayPattern.forEach((vol, i) => {
+          dayPattern[i] = vol / totalDayVolume;
+        });
+      } else {
+        // Fallback to manual distribution
+        const dayDistribution = {
+          mon: parseFloat(document.getElementById('dayMon').value) / 100,
+          tue: parseFloat(document.getElementById('dayTue').value) / 100,
+          wed: parseFloat(document.getElementById('dayWed').value) / 100,
+          thu: parseFloat(document.getElementById('dayThu').value) / 100,
+          fri: parseFloat(document.getElementById('dayFri').value) / 100,
+          sat: parseFloat(document.getElementById('daySat').value) / 100,
+          sun: parseFloat(document.getElementById('daySun').value) / 100
+        };
+        dayPattern[0] = dayDistribution.sun; // Sunday
+        dayPattern[1] = dayDistribution.mon; // Monday
+        dayPattern[2] = dayDistribution.tue; // Tuesday
+        dayPattern[3] = dayDistribution.wed; // Wednesday
+        dayPattern[4] = dayDistribution.thu; // Thursday
+        dayPattern[5] = dayDistribution.fri; // Friday
+        dayPattern[6] = dayDistribution.sat; // Saturday
+      }
+      
+      // Calculate total weekly volume (use average from historical data or manual input)
+      const avgDailyVolume = totalDayVolume > 0 ? totalDayVolume / 7 : parseFloat(document.getElementById('totalWeeklyVolume').value) / 7;
+      const totalWeeklyVolume = avgDailyVolume * 7;
+      
+      // Generate forecast days
+      const results = [];
+      const startDate = new Date();
+      startDate.setHours(0, 0, 0, 0);
+      
+      const daysOfWeek = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+      
+      for (let day = 0; day < params.forecastDays; day++) {
+        const currentDate = new Date(startDate);
+        currentDate.setDate(startDate.getDate() + day);
+        
+        const dayIndex = currentDate.getDay();
+        const dayName = daysOfWeek[dayIndex];
+        const dayFactor = dayPattern[dayIndex] || 0;
+        
+        // Calculate daily volume with growth and seasonality
+        const dailyVolume = totalWeeklyVolume * dayFactor * params.seasonality * Math.pow(1 + params.growth, day/7);
+        
+        // Distribute across hours
+        for (let hour = 0; hour < 24; hour++) {
+          const hourFactor = hourlyPattern[hour] || 0;
+          const hourlyVolume = dailyVolume * hourFactor;
+          
+          // Use historical AHT for this hour, or average if not available
+          const hourlyAHTValue = hourlyAHT[hour] > 0 ? hourlyAHT[hour] : avgAHT;
+          
+          // Create interval entry
+          const intervalStart = new Date(currentDate);
+          intervalStart.setHours(hour, 0, 0, 0);
+          
+          results.push({
+            date: intervalStart.toISOString().split('T')[0],
+            time: `${String(hour).padStart(2, '0')}:00`,
+            datetime: intervalStart,
+            volume: Math.max(0, Math.round(hourlyVolume)),
+            aht: Math.round(hourlyAHTValue),
+            dayOfWeek: dayName,
+            hour: hour,
+            dayOfWeekIndex: dayIndex
+          });
+        }
+      }
+      
+      return results;
+    }
+
+    // Generate historical mock data (used when no file uploaded)
+    function generateHistoricalMockData(params) {
+      const results = [];
+      const startDate = new Date();
+      startDate.setHours(0, 0, 0, 0);
+      
+      const daysOfWeek = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+      
+      // Use historical AHT patterns from uploaded data if available
+      let avgAHT = params.avgAHT;
+      
+      for (let day = 0; day < params.forecastDays; day++) {
+        const currentDate = new Date(startDate);
+        currentDate.setDate(startDate.getDate() + day);
+        
+        const dayName = daysOfWeek[currentDate.getDay()];
+        
+        // Vary volume by day of week
+        let dayFactor = 1.0;
+        switch (dayName) {
+          case 'mon': dayFactor = 1.2; break;
+          case 'tue': dayFactor = 1.3; break;
+          case 'wed': dayFactor = 1.3; break;
+          case 'thu': dayFactor = 1.3; break;
+          case 'fri': dayFactor = 1.2; break;
+          case 'sat': dayFactor = 0.7; break;
+          case 'sun': dayFactor = 0.5; break;
+        }
+        
+        // Base daily volume
+        const baseDailyVolume = 1000 / 7; // From manual input default
+        
+        // Calculate daily volume with growth and seasonality
+        const dailyVolume = baseDailyVolume * dayFactor * params.seasonality * Math.pow(1 + params.growth, day/7);
+        
+        // Standard hourly pattern
+        const hourlyPattern = [0.02, 0.03, 0.04, 0.06, 0.08, 0.10, 0.12, 0.14, 0.16, 0.18, 0.20, 0.22, 0.20, 0.18, 0.16, 0.14, 0.12, 0.10, 0.08, 0.06, 0.04, 0.03, 0.02, 0.01];
+        
+        // Historical AHT varies by time of day
+        const hourlyAHTPattern = [0.9, 0.9, 0.95, 0.95, 1.0, 1.05, 1.1, 1.15, 1.2, 1.15, 1.1, 1.05, 1.0, 0.95, 0.95, 0.9, 0.9, 0.85, 0.85, 0.8, 0.8, 0.85, 0.85, 0.9];
+        
+        // Distribute across hours
+        for (let hour = 0; hour < 24; hour++) {
+          const hourFactor = hourlyPattern[hour];
+          const hourlyVolume = dailyVolume * hourFactor;
+          
+          // Use historical AHT pattern
+          const hourlyAHT = avgAHT * hourlyAHTPattern[hour];
+          
+          // Create interval entry
+          const intervalStart = new Date(currentDate);
+          intervalStart.setHours(hour, 0, 0, 0);
+          
+          results.push({
+            date: intervalStart.toISOString().split('T')[0],
+            time: `${String(hour).padStart(2, '0')}:00`,
+            datetime: intervalStart,
+            volume: Math.max(0, Math.round(hourlyVolume)),
+            aht: Math.round(hourlyAHT),
+            dayOfWeek: dayName,
+            hour: hour,
+            dayOfWeekIndex: currentDate.getDay()
+          });
+        }
+      }
+      
+      return results;
     }
 
     // Generate import forecast
@@ -1827,7 +2095,7 @@
       document.getElementById('resultAvgOccupancy').textContent = (avgOccupancy * 100).toFixed(1) + '%';
     }
 
-    // Update charts
+    // Update charts with consistent styling
     function updateCharts(data, interval) {
       // Limit data for charts to avoid overcrowding
       const chartData = interval === 'day' ? data : data.slice(0, 168); // Show max 1 week for sub-daily intervals
@@ -1838,14 +2106,76 @@
       const serviceLevels = chartData.map(item => item.serviceLevel * 100);
       const occupancies = chartData.map(item => item.occupancy * 100);
       
-      updateChart('volumeChart', labels, volumes, 'Volume', 'bar', 'rgba(74, 140, 125, 0.7)');
-      updateChart('staffingChart', labels, staff, 'Staff Required', 'line', 'rgba(99, 171, 143, 1)');
-      updateChart('slChart', labels, serviceLevels, 'Service Level %', 'line', 'rgba(22, 163, 74, 1)');
-      updateChart('occupancyChart', labels, occupancies, 'Occupancy %', 'line', 'rgba(245, 158, 11, 1)');
+      // Consistent chart options for all charts
+      const chartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top',
+          },
+          tooltip: {
+            mode: 'index',
+            intersect: false,
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            grid: {
+              color: 'rgba(0, 0, 0, 0.05)'
+            },
+            ticks: {
+              font: {
+                size: 11
+              }
+            }
+          },
+          x: {
+            grid: {
+              color: 'rgba(0, 0, 0, 0.05)'
+            },
+            ticks: {
+              font: {
+                size: 11
+              },
+              maxRotation: 45,
+              minRotation: 45,
+              callback: function(value, index) {
+                // Show fewer labels for better readability
+                if (labels.length > 50 && index % Math.ceil(labels.length / 20) !== 0) return '';
+                return this.getLabelForValue(value);
+              }
+            }
+          }
+        },
+        interaction: {
+          intersect: false,
+          mode: 'index'
+        }
+      };
+      
+      // Volume Chart
+      updateChart('volumeChart', labels, volumes, 'Volume', 'bar', 'rgba(74, 140, 125, 0.7)', 'rgba(74, 140, 125, 1)', chartOptions);
+      
+      // Staffing Chart
+      updateChart('staffingChart', labels, staff, 'Staff Required', 'line', 'rgba(99, 171, 143, 0.2)', 'rgba(99, 171, 143, 1)', chartOptions);
+      
+      // Service Level Chart
+      const slOptions = JSON.parse(JSON.stringify(chartOptions));
+      slOptions.scales.y.max = 100;
+      slOptions.scales.y.min = 70;
+      updateChart('slChart', labels, serviceLevels, 'Service Level %', 'line', 'rgba(22, 163, 74, 0.2)', 'rgba(22, 163, 74, 1)', slOptions);
+      
+      // Occupancy Chart
+      const occOptions = JSON.parse(JSON.stringify(chartOptions));
+      occOptions.scales.y.max = 100;
+      updateChart('occupancyChart', labels, occupancies, 'Occupancy %', 'line', 'rgba(245, 158, 11, 0.2)', 'rgba(245, 158, 11, 1)', occOptions);
     }
 
-    // Update a single chart
-    function updateChart(canvasId, labels, data, label, type, color) {
+    // Update a single chart with consistent styling
+    function updateChart(canvasId, labels, data, label, type, bgColor, borderColor, options) {
       const ctx = document.getElementById(canvasId).getContext('2d');
       
       if (window[canvasId + 'Chart']) {
@@ -1859,37 +2189,16 @@
           datasets: [{
             label: label,
             data: data,
-            backgroundColor: type === 'bar' ? color : 'rgba(255, 255, 255, 0)',
-            borderColor: color,
-            borderWidth: type === 'line' ? 2 : 0,
+            backgroundColor: bgColor,
+            borderColor: borderColor,
+            borderWidth: type === 'line' ? 2 : 1,
             fill: type === 'line',
-            tension: 0.4
+            tension: 0.4,
+            pointRadius: type === 'line' ? 2 : 0,
+            pointHoverRadius: 5
           }]
         },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: {
-              display: false
-            }
-          },
-          scales: {
-            y: {
-              beginAtZero: true
-            },
-            x: {
-              ticks: {
-                maxRotation: 45,
-                minRotation: 45,
-                callback: function(value, index) {
-                  // Show fewer labels for better readability
-                  if (labels.length > 50 && index % Math.ceil(labels.length / 20) !== 0) return '';
-                  return this.getLabelForValue(value);
-                }
-              }
-            }
-          }
-        }
+        options: options
       });
     }
 
@@ -1987,31 +2296,6 @@
       return new Date(dateString);
     }
     
-    function generateMockData(params) {
-      const results = [];
-      const startDate = new Date();
-      
-      for (let i = 0; i < params.forecastDays; i++) {
-        const date = new Date(startDate);
-        date.setDate(startDate.getDate() + i);
-        
-        for (let hour = 8; hour < 18; hour++) { // 8am to 6pm
-          const volume = 10 + Math.floor(Math.random() * 20);
-          
-          results.push({
-            date: date.toISOString().split('T')[0],
-            time: `${String(hour).padStart(2, '0')}:00`,
-            datetime: new Date(date.getFullYear(), date.getMonth(), date.getDate(), hour, 0, 0),
-            volume: volume,
-            aht: params.avgAHT + Math.floor(Math.random() * 60) - 30,
-            dayOfWeek: ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][date.getDay()]
-          });
-        }
-      }
-      
-      return results;
-    }
-    
     function updateStatus(message, isError = false) {
       statusIndicator.innerHTML = isError 
         ? `<i class="fas fa-exclamation-circle" style="color: var(--bad);"></i> ${message}`
@@ -2024,7 +2308,8 @@
         parameters: {},
         results: null,
         rawData: [],
-        intervalView: '60'
+        intervalView: '60',
+        historicalData: null
       };
       
       // Reset form values
@@ -2045,20 +2330,20 @@
     }
     
     function downloadTemplate() {
-      const template = `date,time,queue,volume,aht_seconds,service_level
-2024-01-15,08:00,Voice - Sales,25,350,0.85
-2024-01-15,09:00,Voice - Sales,30,360,0.82
-2024-01-15,10:00,Voice - Sales,35,340,0.88
-2024-01-15,11:00,Voice - Sales,40,330,0.80
-2024-01-15,12:00,Voice - Sales,45,320,0.78
-2024-01-15,13:00,Voice - Sales,40,310,0.85
-2024-01-15,14:00,Voice - Sales,35,300,0.90
-2024-01-15,15:00,Voice - Sales,30,290,0.92`;
+      const template = `datetime,volume,aht_seconds,queue
+2024-01-15 08:00:00,25,350,Voice - Sales
+2024-01-15 09:00:00,30,360,Voice - Sales
+2024-01-15 10:00:00,35,340,Voice - Sales
+2024-01-15 11:00:00,40,330,Voice - Sales
+2024-01-15 12:00:00,45,320,Voice - Sales
+2024-01-15 13:00:00,40,310,Voice - Sales
+2024-01-15 14:00:00,35,300,Voice - Sales
+2024-01-15 15:00:00,30,290,Voice - Sales`;
       
       const blob = new Blob([template], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      link.download = 'forecast_template.csv';
+      link.download = 'historical_data_template.csv';
       link.click();
     }
     
