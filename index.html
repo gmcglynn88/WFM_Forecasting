@@ -35,7 +35,7 @@
     }
     
     .container {
-      max-width: 1400px;
+      max-width: 1600px;
       margin: 0 auto;
     }
 
@@ -321,8 +321,8 @@
       min-height: 2px;
     }
 
-    /* Tabs */
-    .tabs {
+    /* Main Tabs */
+    .main-tabs {
       display: flex;
       border-bottom: 1px solid var(--border-color);
       margin-bottom: 20px;
@@ -331,12 +331,12 @@
       overflow: hidden;
     }
     
-    .tab {
+    .main-tab {
       padding: 14px 24px;
       background: none;
       border: none;
       border-bottom: 3px solid transparent;
-      font-size: 15px;
+      font-size: 16px;
       font-weight: 700;
       cursor: pointer;
       color: var(--text-light);
@@ -344,17 +344,46 @@
       position: relative;
     }
     
-    .tab.active {
+    .main-tab.active {
       color: var(--primary-color);
       border-bottom-color: var(--primary-color);
       background: rgba(99, 171, 143, 0.05);
     }
     
-    .tab:hover:not(.active) {
+    .main-tab:hover:not(.active) {
       background: rgba(99, 171, 143, 0.05);
       color: var(--secondary-color);
     }
+
+    /* Sub Tabs */
+    .sub-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 20px;
+    }
     
+    .sub-tab {
+      padding: 12px 20px;
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--text-light);
+      transition: all 0.2s;
+    }
+    
+    .sub-tab.active {
+      color: var(--primary-color);
+      border-bottom-color: var(--primary-color);
+    }
+    
+    .sub-tab:hover:not(.active) {
+      color: var(--secondary-color);
+    }
+
+    /* Tab Content */
     .tab-content {
       display: none;
     }
@@ -420,6 +449,69 @@
       font-size: 12px;
       color: var(--text-light);
       line-height: 1.4;
+    }
+
+    /* Forecast Views */
+    .view-controls {
+      background: white;
+      padding: 16px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .view-group {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    
+    .view-btn {
+      padding: 8px 16px;
+      background: #fff;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .view-btn.active {
+      background: var(--primary-color);
+      color: white;
+      border-color: var(--primary-color);
+    }
+    
+    .view-btn:hover:not(.active) {
+      background: rgba(99, 171, 143, 0.1);
+      border-color: var(--primary-color);
+    }
+    
+    .interval-selector {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    
+    .interval-btn {
+      padding: 6px 12px;
+      background: #fff;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .interval-btn.active {
+      background: var(--secondary-color);
+      color: white;
+      border-color: var(--secondary-color);
     }
 
     /* Charts */
@@ -542,6 +634,65 @@
       transition: width 0.3s ease;
     }
 
+    /* Adjustment Controls */
+    .adjustment-controls {
+      background: white;
+      padding: 16px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      margin: 20px 0;
+    }
+    
+    .adjustment-row {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+    
+    .adjustment-input {
+      flex: 1;
+      max-width: 200px;
+    }
+    
+    .adjustment-label {
+      min-width: 120px;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    
+    .adjustment-value {
+      min-width: 60px;
+      text-align: center;
+      font-weight: 600;
+      color: var(--secondary-color);
+    }
+
+    /* AHT Pattern Grid */
+    .aht-pattern-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 12px;
+      margin-top: 10px;
+    }
+    
+    .aht-cell {
+      text-align: center;
+    }
+    
+    .aht-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--secondary-color);
+      margin-bottom: 4px;
+    }
+    
+    .aht-input {
+      width: 80px;
+      text-align: center;
+      margin: 0 auto;
+      padding: 8px;
+    }
+
     /* Modal for Erlang C Explanation */
     .modal-overlay {
       display: none;
@@ -631,9 +782,28 @@
         min-width: unset;
       }
       
-      .tab {
+      .main-tab, .sub-tab {
         padding: 12px 16px;
         font-size: 14px;
+      }
+      
+      .view-controls {
+        flex-direction: column;
+        gap: 12px;
+        align-items: stretch;
+      }
+      
+      .adjustment-row {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      
+      .adjustment-input {
+        max-width: 100%;
+      }
+      
+      .aht-pattern-grid {
+        grid-template-columns: repeat(3, 1fr);
       }
     }
 
@@ -673,30 +843,130 @@
       </div>
     </div>
 
-    <!-- Main Content -->
-    <div class="main-layout">
-      <!-- Input Source Tabs -->
-      <div class="card">
-        <div class="tabs">
-          <button class="tab active" data-tab="historical">📊 Historical Data</button>
-          <button class="tab" data-tab="manual">📝 Manual Input</button>
-          <button class="tab" data-tab="import">📁 Import Data</button>
-        </div>
+    <!-- Main Tabs -->
+    <div class="main-tabs">
+      <button class="main-tab active" data-main-tab="settings">⚙️ Forecast Settings</button>
+      <button class="main-tab" data-main-tab="forecast">📊 Forecast View</button>
+      <button class="main-tab" data-main-tab="adjustments">🔧 Forecast Adjustments</button>
+    </div>
 
-        <!-- Historical Data Tab -->
-        <div id="historicalContent" class="tab-content active">
-          <div class="form-group">
-            <label for="historicalFile">Upload Historical Data (CSV)</label>
-            <input type="file" id="historicalFile" accept=".csv">
-            <div class="help-text">
-              Required columns: datetime, queue, volume, aht_seconds<br>
-              Optional columns: service_level, occupancy, abandonment_rate
+    <!-- Settings Tab -->
+    <div id="settingsContent" class="tab-content active">
+      <div class="sub-tabs">
+        <button class="sub-tab active" data-sub-tab="dataSource">Data Source</button>
+        <button class="sub-tab" data-sub-tab="erlangParams">Erlang C Parameters</button>
+        <button class="sub-tab" data-sub-tab="patterns">Patterns & Distribution</button>
+      </div>
+
+      <!-- Data Source Content -->
+      <div id="dataSourceContent" class="tab-content active">
+        <div class="cards-row">
+          <div class="card">
+            <div class="card-title">
+              <h2>Historical Data</h2>
+              <span class="badge">CSV</span>
+            </div>
+            <div class="form-group">
+              <label for="historicalFile">Upload Historical Data</label>
+              <input type="file" id="historicalFile" accept=".csv">
+              <div class="help-text">
+                Required columns: datetime, queue, volume, aht_seconds<br>
+                Optional columns: service_level, occupancy, abandonment_rate
+              </div>
             </div>
           </div>
 
-          <div class="row-3">
+          <div class="card">
+            <div class="card-title">
+              <h2>Manual Input</h2>
+              <span class="badge">Quick Setup</span>
+            </div>
             <div class="form-group">
-              <label for="forecastPeriod">Forecast Period</label>
+              <label for="totalWeeklyVolume">Total Weekly Volume</label>
+              <input type="number" id="totalWeeklyVolume" min="1" value="1000" step="1">
+              <div class="help-text">Total contacts expected per week</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">
+              <h2>Import Forecast</h2>
+              <span class="badge">External</span>
+            </div>
+            <div class="form-group">
+              <label for="importFile">Import Forecast Data</label>
+              <input type="file" id="importFile" accept=".csv">
+              <div class="help-text">
+                Format: date, time, queue, volume, aht, required_staff<br>
+                Or use generated forecasts from other systems
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Erlang C Parameters Content -->
+      <div id="erlangParamsContent" class="tab-content">
+        <div class="cards-row">
+          <div class="card">
+            <div class="card-title">
+              <h2>Service Level Targets</h2>
+              <span class="badge">SLA</span>
+            </div>
+            <div class="row">
+              <div class="form-group">
+                <label for="targetServiceLevel">Service Level (%)</label>
+                <input type="number" id="targetServiceLevel" min="1" max="99" value="80" step="1">
+                <div class="help-text">e.g., 80% answered within target time</div>
+              </div>
+
+              <div class="form-group">
+                <label for="targetAnswerTime">Answer Time (seconds)</label>
+                <input type="number" id="targetAnswerTime" min="1" value="20" step="1">
+                <div class="help-text">Target time to answer</div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="maxOccupancy">Maximum Occupancy (%)</label>
+              <input type="number" id="maxOccupancy" min="50" max="95" value="85" step="1">
+              <div class="help-text">Maximum agent utilization</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">
+              <h2>Contact Parameters</h2>
+              <span class="badge">AHT & Shrinkage</span>
+            </div>
+            <div class="row">
+              <div class="form-group">
+                <label for="avgAHT">Average Handle Time (seconds)</label>
+                <input type="number" id="avgAHT" min="1" value="300" step="1">
+                <div class="help-text">Average contact duration</div>
+              </div>
+
+              <div class="form-group">
+                <label for="shrinkageRate">Shrinkage Rate (%)</label>
+                <input type="number" id="shrinkageRate" min="0" max="50" value="30" step="0.5">
+                <div class="help-text">Breaks, meetings, training</div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="abandonmentRate">Abandonment Rate (%)</label>
+              <input type="number" id="abandonmentRate" min="0" max="50" value="5" step="0.1">
+              <div class="help-text">Expected abandonment rate</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">
+              <h2>Forecast Period</h2>
+              <span class="badge">Timeline</span>
+            </div>
+            <div class="form-group">
+              <label for="forecastPeriod">Forecast Duration</label>
               <select id="forecastPeriod">
                 <option value="7">7 days (1 week)</option>
                 <option value="14">14 days (2 weeks)</option>
@@ -706,68 +976,72 @@
               </select>
             </div>
 
-            <div class="form-group">
-              <label for="seasonalityFactor">Seasonality Factor (%)</label>
-              <input type="number" id="seasonalityFactor" min="0" max="200" value="100" step="1">
-              <div class="help-text">Adjust for weekly/monthly patterns</div>
-            </div>
+            <div class="row">
+              <div class="form-group">
+                <label for="seasonalityFactor">Seasonality Factor (%)</label>
+                <input type="number" id="seasonalityFactor" min="0" max="200" value="100" step="1">
+                <div class="help-text">Adjust for weekly/monthly patterns</div>
+              </div>
 
-            <div class="form-group">
-              <label for="growthRate">Growth Rate (%)</label>
-              <input type="number" id="growthRate" min="-50" max="200" value="0" step="0.5">
-              <div class="help-text">Expected increase/decrease in volume</div>
+              <div class="form-group">
+                <label for="growthRate">Growth Rate (%)</label>
+                <input type="number" id="growthRate" min="-50" max="200" value="0" step="0.5">
+                <div class="help-text">Expected increase/decrease in volume</div>
+              </div>
             </div>
-          </div>
-
-          <div class="note">
-            <strong>How it works:</strong> The forecast will analyze historical patterns, apply seasonality adjustments and growth rates, then distribute volume across intervals using Erlang C calculations.
           </div>
         </div>
+      </div>
 
-        <!-- Manual Input Tab -->
-        <div id="manualContent" class="tab-content">
-          <div class="form-group">
-            <label for="totalWeeklyVolume">Total Weekly Volume</label>
-            <input type="number" id="totalWeeklyVolume" min="1" value="1000" step="1">
-            <div class="help-text">Total contacts expected per week</div>
-          </div>
-
-          <div class="form-group">
-            <label>Day of Week Distribution (%)</label>
-            <div class="day-distribution-grid">
-              <div class="day-cell">
-                <div class="day-label">Mon</div>
-                <input type="number" class="day-input" id="dayMon" min="0" max="100" value="16" step="0.1">
-              </div>
-              <div class="day-cell">
-                <div class="day-label">Tue</div>
-                <input type="number" class="day-input" id="dayTue" min="0" max="100" value="17" step="0.1">
-              </div>
-              <div class="day-cell">
-                <div class="day-label">Wed</div>
-                <input type="number" class="day-input" id="dayWed" min="0" max="100" value="17" step="0.1">
-              </div>
-              <div class="day-cell">
-                <div class="day-label">Thu</div>
-                <input type="number" class="day-input" id="dayThu" min="0" max="100" value="17" step="0.1">
-              </div>
-              <div class="day-cell">
-                <div class="day-label">Fri</div>
-                <input type="number" class="day-input" id="dayFri" min="0" max="100" value="17" step="0.1">
-              </div>
-              <div class="day-cell">
-                <div class="day-label">Sat</div>
-                <input type="number" class="day-input" id="daySat" min="0" max="100" value="10" step="0.1">
-              </div>
-              <div class="day-cell">
-                <div class="day-label">Sun</div>
-                <input type="number" class="day-input" id="daySun" min="0" max="100" value="6" step="0.1">
-              </div>
+      <!-- Patterns Content -->
+      <div id="patternsContent" class="tab-content">
+        <div class="cards-row">
+          <div class="card">
+            <div class="card-title">
+              <h2>Day of Week Distribution</h2>
+              <span class="badge">Weekly Pattern</span>
             </div>
-            <div class="help-text" id="distributionTotal">Total: 100%</div>
+            <div class="form-group">
+              <label>Daily Percentage Distribution (%)</label>
+              <div class="day-distribution-grid">
+                <div class="day-cell">
+                  <div class="day-label">Mon</div>
+                  <input type="number" class="day-input" id="dayMon" min="0" max="100" value="16" step="0.1">
+                </div>
+                <div class="day-cell">
+                  <div class="day-label">Tue</div>
+                  <input type="number" class="day-input" id="dayTue" min="0" max="100" value="17" step="0.1">
+                </div>
+                <div class="day-cell">
+                  <div class="day-label">Wed</div>
+                  <input type="number" class="day-input" id="dayWed" min="0" max="100" value="17" step="0.1">
+                </div>
+                <div class="day-cell">
+                  <div class="day-label">Thu</div>
+                  <input type="number" class="day-input" id="dayThu" min="0" max="100" value="17" step="0.1">
+                </div>
+                <div class="day-cell">
+                  <div class="day-label">Fri</div>
+                  <input type="number" class="day-input" id="dayFri" min="0" max="100" value="17" step="0.1">
+                </div>
+                <div class="day-cell">
+                  <div class="day-label">Sat</div>
+                  <input type="number" class="day-input" id="daySat" min="0" max="100" value="10" step="0.1">
+                </div>
+                <div class="day-cell">
+                  <div class="day-label">Sun</div>
+                  <input type="number" class="day-input" id="daySun" min="0" max="100" value="6" step="0.1">
+                </div>
+              </div>
+              <div class="help-text" id="distributionTotal">Total: 100%</div>
+            </div>
           </div>
 
-          <div class="row">
+          <div class="card">
+            <div class="card-title">
+              <h2>Hourly Distribution Pattern</h2>
+              <span class="badge">Intraday</span>
+            </div>
             <div class="form-group">
               <label for="intervalPattern">Interval Distribution Pattern</label>
               <select id="intervalPattern">
@@ -779,109 +1053,53 @@
               </select>
             </div>
 
+            <div id="patternVisualization" class="pattern-visualization">
+              <div class="pattern-bars" id="patternBars">
+                <!-- Pattern bars will be generated by JavaScript -->
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">
+              <h2>AHT Variation Pattern</h2>
+              <span class="badge">Time of Day</span>
+            </div>
             <div class="form-group">
-              <label for="intervalLength">Interval Length (minutes)</label>
-              <select id="intervalLength">
-                <option value="15">15 minutes</option>
-                <option value="30">30 minutes</option>
-                <option value="60" selected>60 minutes</option>
-                <option value="120">120 minutes</option>
-              </select>
+              <label>Handle Time by Time Period (% of Average)</label>
+              <div class="aht-pattern-grid">
+                <div class="aht-cell">
+                  <div class="aht-label">12am-4am</div>
+                  <input type="number" class="aht-input" data-period="0" min="50" max="200" value="90" step="1">
+                </div>
+                <div class="aht-cell">
+                  <div class="aht-label">4am-8am</div>
+                  <input type="number" class="aht-input" data-period="1" min="50" max="200" value="95" step="1">
+                </div>
+                <div class="aht-cell">
+                  <div class="aht-label">8am-12pm</div>
+                  <input type="number" class="aht-input" data-period="2" min="50" max="200" value="105" step="1">
+                </div>
+                <div class="aht-cell">
+                  <div class="aht-label">12pm-4pm</div>
+                  <input type="number" class="aht-input" data-period="3" min="50" max="200" value="100" step="1">
+                </div>
+                <div class="aht-cell">
+                  <div class="aht-label">4pm-8pm</div>
+                  <input type="number" class="aht-input" data-period="4" min="50" max="200" value="95" step="1">
+                </div>
+                <div class="aht-cell">
+                  <div class="aht-label">8pm-12am</div>
+                  <input type="number" class="aht-input" data-period="5" min="50" max="200" value="85" step="1">
+                </div>
+              </div>
+              <div class="help-text">Enter percentages relative to average AHT (100% = average)</div>
             </div>
-          </div>
-
-          <div id="patternVisualization" class="pattern-visualization">
-            <div class="pattern-bars" id="patternBars">
-              <!-- Pattern bars will be generated by JavaScript -->
-            </div>
-          </div>
-        </div>
-
-        <!-- Import Data Tab -->
-        <div id="importContent" class="tab-content">
-          <div class="form-group">
-            <label for="importFile">Import Forecast Data (CSV)</label>
-            <input type="file" id="importFile" accept=".csv">
-            <div class="help-text">
-              Format: date, time, queue, volume, aht, required_staff<br>
-              Or use generated forecasts from other systems
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="importSource">Data Source</label>
-            <select id="importSource">
-              <option value="genesys">Genesys Cloud</option>
-              <option value="nice">NICE CXone</option>
-              <option value="verint">Verint</option>
-              <option value="custom">Custom Format</option>
-            </select>
-          </div>
-
-          <div class="note">
-            <strong>Note:</strong> Imported data will be validated and Erlang C calculations will be applied to ensure consistency.
-          </div>
-        </div>
-      </div>
-
-      <!-- Erlang C Parameters Card -->
-      <div class="cards-row">
-        <div class="card">
-          <div class="card-title">
-            <h2>Service Level Targets</h2>
-            <span class="badge">SLA</span>
-          </div>
-          
-          <div class="row">
-            <div class="form-group">
-              <label for="targetServiceLevel">Service Level (%)</label>
-              <input type="number" id="targetServiceLevel" min="1" max="99" value="80" step="1">
-              <div class="help-text">e.g., 80% answered within target time</div>
-            </div>
-
-            <div class="form-group">
-              <label for="targetAnswerTime">Answer Time (seconds)</label>
-              <input type="number" id="targetAnswerTime" min="1" value="20" step="1">
-              <div class="help-text">Target time to answer</div>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="maxOccupancy">Maximum Occupancy (%)</label>
-            <input type="number" id="maxOccupancy" min="50" max="95" value="85" step="1">
-            <div class="help-text">Maximum agent utilization</div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-title">
-            <h2>Contact & Staff Parameters</h2>
-            <span class="badge">AHT & Shrinkage</span>
-          </div>
-          
-          <div class="row">
-            <div class="form-group">
-              <label for="avgAHT">Average Handle Time (seconds)</label>
-              <input type="number" id="avgAHT" min="1" value="300" step="1">
-              <div class="help-text">Average contact duration</div>
-            </div>
-
-            <div class="form-group">
-              <label for="shrinkageRate">Shrinkage Rate (%)</label>
-              <input type="number" id="shrinkageRate" min="0" max="50" value="30" step="0.5">
-              <div class="help-text">Breaks, meetings, training</div>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="abandonmentRate">Abandonment Rate (%)</label>
-            <input type="number" id="abandonmentRate" min="0" max="50" value="5" step="0.1">
-            <div class="help-text">Expected abandonment rate</div>
           </div>
         </div>
       </div>
 
-      <!-- Generate Forecast Card -->
+      <!-- Generate Button -->
       <div class="card">
         <div class="card-title">
           <h2>Generate Forecast</h2>
@@ -901,7 +1119,7 @@
 
         <div class="btn-group">
           <button id="generateForecastBtn" class="primary">📈 Generate Forecast</button>
-          <button id="clearForecastBtn" class="secondary">Clear Forecast</button>
+          <button id="clearForecastBtn" class="secondary">Clear Settings</button>
           <button id="downloadTemplateBtn" class="secondary">📥 Download Template</button>
         </div>
 
@@ -911,76 +1129,201 @@
       </div>
     </div>
 
-    <!-- Results Section (initially hidden) -->
-    <div id="resultsSection" class="results-section" style="display: none;">
-      <div class="results-header">
-        <h2>Forecast Results</h2>
-        <button id="downloadResultsBtn" class="secondary">📤 Download Forecast</button>
-      </div>
-
-      <div class="summary-tiles">
-        <div class="tile">
-          <div class="label">Total Volume</div>
-          <div class="value" id="resultTotalVolume">—</div>
-          <div class="subtext">Forecast period</div>
+    <!-- Forecast View Tab -->
+    <div id="forecastContent" class="tab-content">
+      <!-- View Controls -->
+      <div class="view-controls">
+        <div class="view-group">
+          <span style="font-weight: 600; margin-right: 12px;">View:</span>
+          <button class="view-btn active" data-view="table">📋 Table View</button>
+          <button class="view-btn" data-view="chart">📈 Chart View</button>
+          <button class="view-btn" data-view="summary">📊 Summary View</button>
         </div>
-        <div class="tile">
-          <div class="label">Required FTE</div>
-          <div class="value" id="resultRequiredFTE">—</div>
-          <div class="subtext">Full-time equivalent</div>
+        
+        <div class="interval-selector">
+          <span style="font-weight: 600; margin-right: 12px;">Interval:</span>
+          <button class="interval-btn active" data-interval="15">15 min</button>
+          <button class="interval-btn" data-interval="30">30 min</button>
+          <button class="interval-btn" data-interval="60">60 min</button>
+          <button class="interval-btn" data-interval="day">Daily</button>
         </div>
-        <div class="tile">
-          <div class="label">Avg Staff/Hour</div>
-          <div class="value" id="resultAvgStaff">—</div>
-          <div class="subtext">Average per hour</div>
-        </div>
-        <div class="tile">
-          <div class="label">Total Hours</div>
-          <div class="value" id="resultTotalHours">—</div>
-          <div class="subtext">Work hours required</div>
+        
+        <div>
+          <button id="exportViewBtn" class="secondary">📤 Export View</button>
         </div>
       </div>
 
-      <div class="charts-container">
-        <div class="chart-card">
-          <h3 class="chart-title">Weekly Volume Distribution</h3>
-          <canvas id="volumeChart"></canvas>
-        </div>
-        <div class="chart-card">
-          <h3 class="chart-title">Staffing Requirements</h3>
-          <canvas id="staffingChart"></canvas>
+      <!-- Table View -->
+      <div id="tableView" class="tab-content active">
+        <div class="table-container">
+          <table id="forecastTable">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Day</th>
+                <th class="center">Interval</th>
+                <th class="right">Volume</th>
+                <th class="right">AHT (s)</th>
+                <th class="right">Required Staff</th>
+                <th class="right">FTE</th>
+                <th class="center">Service Level</th>
+                <th class="center">Occupancy</th>
+              </tr>
+            </thead>
+            <tbody id="forecastTableBody">
+              <tr>
+                <td colspan="9" class="center" style="padding: 40px; color: var(--text-light);">
+                  No forecast generated yet. Configure parameters and click "Generate Forecast".
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
 
-      <div class="table-container">
-        <table id="forecastTable">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Day</th>
-              <th class="center">Interval</th>
-              <th class="right">Volume</th>
-              <th class="right">AHT (s)</th>
-              <th class="right">Required Staff</th>
-              <th class="right">FTE</th>
-              <th class="center">Service Level</th>
-              <th class="center">Occupancy</th>
-            </tr>
-          </thead>
-          <tbody id="forecastTableBody">
-            <tr>
-              <td colspan="9" class="center" style="padding: 40px; color: var(--text-light);">
-                No forecast generated yet. Configure parameters and click "Generate Forecast".
-              </td>
-            </tr>
-          </tbody>
-        </table>
+      <!-- Chart View -->
+      <div id="chartView" class="tab-content">
+        <div class="charts-container">
+          <div class="chart-card">
+            <h3 class="chart-title">Volume Forecast</h3>
+            <canvas id="volumeChart"></canvas>
+          </div>
+          <div class="chart-card">
+            <h3 class="chart-title">Staffing Requirements</h3>
+            <canvas id="staffingChart"></canvas>
+          </div>
+          <div class="chart-card">
+            <h3 class="chart-title">Service Level Forecast</h3>
+            <canvas id="slChart"></canvas>
+          </div>
+          <div class="chart-card">
+            <h3 class="chart-title">Occupancy Levels</h3>
+            <canvas id="occupancyChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Summary View -->
+      <div id="summaryView" class="tab-content">
+        <div class="summary-tiles">
+          <div class="tile">
+            <div class="label">Total Volume</div>
+            <div class="value" id="resultTotalVolume">—</div>
+            <div class="subtext">Forecast period</div>
+          </div>
+          <div class="tile">
+            <div class="label">Required FTE</div>
+            <div class="value" id="resultRequiredFTE">—</div>
+            <div class="subtext">Full-time equivalent</div>
+          </div>
+          <div class="tile">
+            <div class="label">Peak Staff/Hour</div>
+            <div class="value" id="resultPeakStaff">—</div>
+            <div class="subtext">Maximum requirement</div>
+          </div>
+          <div class="tile">
+            <div class="label">Avg Service Level</div>
+            <div class="value" id="resultAvgSL">—</div>
+            <div class="subtext">Weighted average</div>
+          </div>
+          <div class="tile">
+            <div class="label">Total Hours</div>
+            <div class="value" id="resultTotalHours">—</div>
+            <div class="subtext">Work hours required</div>
+          </div>
+          <div class="tile">
+            <div class="label">Avg Occupancy</div>
+            <div class="value" id="resultAvgOccupancy">—</div>
+            <div class="subtext">Agent utilization</div>
+          </div>
+        </div>
+
+        <div class="chart-card" style="margin-top: 24px;">
+          <h3 class="chart-title">Daily Summary</h3>
+          <canvas id="dailySummaryChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Adjustments Tab -->
+    <div id="adjustmentsContent" class="tab-content">
+      <div class="adjustment-controls">
+        <div class="adjustment-row">
+          <div class="adjustment-label">Global Volume Adjustment:</div>
+          <input type="range" class="adjustment-input" id="volumeAdjustSlider" min="-50" max="50" value="0" step="1">
+          <div class="adjustment-value" id="volumeAdjustValue">0%</div>
+          <button class="secondary" id="applyVolumeAdjust">Apply</button>
+        </div>
+        <div class="help-text">Adjust all volumes by this percentage. Positive increases, negative decreases.</div>
+      </div>
+
+      <div class="adjustment-controls">
+        <div class="adjustment-row">
+          <div class="adjustment-label">Day of Week Adjustment:</div>
+          <select id="dayOfWeekSelect" style="flex: 1; max-width: 150px;">
+            <option value="all">All Days</option>
+            <option value="mon">Monday</option>
+            <option value="tue">Tuesday</option>
+            <option value="wed">Wednesday</option>
+            <option value="thu">Thursday</option>
+            <option value="fri">Friday</option>
+            <option value="sat">Saturday</option>
+            <option value="sun">Sunday</option>
+          </select>
+          <input type="range" class="adjustment-input" id="dayAdjustSlider" min="-50" max="50" value="0" step="1">
+          <div class="adjustment-value" id="dayAdjustValue">0%</div>
+          <button class="secondary" id="applyDayAdjust">Apply</button>
+        </div>
+        <div class="help-text">Adjust volumes for specific days of the week.</div>
+      </div>
+
+      <div class="adjustment-controls">
+        <div class="adjustment-row">
+          <div class="adjustment-label">Time Period Adjustment:</div>
+          <select id="timePeriodSelect" style="flex: 1; max-width: 150px;">
+            <option value="all">All Hours</option>
+            <option value="morning">Morning (8am-12pm)</option>
+            <option value="afternoon">Afternoon (12pm-4pm)</option>
+            <option value="evening">Evening (4pm-8pm)</option>
+            <option value="night">Night (8pm-8am)</option>
+          </select>
+          <input type="range" class="adjustment-input" id="timeAdjustSlider" min="-50" max="50" value="0" step="1">
+          <div class="adjustment-value" id="timeAdjustValue">0%</div>
+          <button class="secondary" id="applyTimeAdjust">Apply</button>
+        </div>
+        <div class="help-text">Adjust volumes for specific time periods.</div>
+      </div>
+
+      <div class="adjustment-controls">
+        <div class="adjustment-row">
+          <div class="adjustment-label">Service Level Target:</div>
+          <input type="range" class="adjustment-input" id="slAdjustSlider" min="70" max="95" value="80" step="1">
+          <div class="adjustment-value" id="slAdjustValue">80%</div>
+          <button class="secondary" id="applySLAdjust">Apply</button>
+        </div>
+        <div class="help-text">Adjust service level target and recalculate staffing.</div>
+      </div>
+
+      <div class="card" style="margin-top: 24px;">
+        <div class="card-title">
+          <h2>Adjustment Summary</h2>
+          <span class="badge">Active Changes</span>
+        </div>
+        <div id="adjustmentSummary">
+          <p style="color: var(--text-light); text-align: center; padding: 20px;">
+            No adjustments applied yet.
+          </p>
+        </div>
+        <div class="btn-group">
+          <button id="saveAdjustmentsBtn" class="secondary">💾 Save Adjustments</button>
+          <button id="resetAdjustmentsBtn" class="secondary">🔄 Reset All</button>
+        </div>
       </div>
     </div>
 
     <!-- Footer -->
     <div class="footer">
-      <p>WFM Forecasting Tool v1.0 | Uses industry-standard Erlang C calculations for accurate staffing forecasts</p>
+      <p>WFM Forecasting Tool v2.0 | Professional Erlang C Forecasting with Advanced Visualization</p>
       <p>For support or questions, contact your WFM administrator</p>
     </div>
   </div>
@@ -1021,28 +1364,50 @@
   <script>
     // DOM Elements
     const statusIndicator = document.getElementById('statusIndicator');
-    const tabs = document.querySelectorAll('.tab');
+    const mainTabs = document.querySelectorAll('.main-tab');
+    const subTabs = document.querySelectorAll('.sub-tab');
     const tabContents = document.querySelectorAll('.tab-content');
     const generateForecastBtn = document.getElementById('generateForecastBtn');
     const clearForecastBtn = document.getElementById('clearForecastBtn');
     const downloadTemplateBtn = document.getElementById('downloadTemplateBtn');
-    const resultsSection = document.getElementById('resultsSection');
     const progressBar = document.getElementById('progressBar');
     const progressFill = document.getElementById('progressFill');
-    const downloadResultsBtn = document.getElementById('downloadResultsBtn');
     const patternBars = document.getElementById('patternBars');
     const distributionInputs = document.querySelectorAll('.day-input');
     const distributionTotal = document.getElementById('distributionTotal');
-    const intervalPatternSelect = document.getElementById('intervalPattern');
+    const ahtInputs = document.querySelectorAll('.aht-input');
+    const viewButtons = document.querySelectorAll('.view-btn');
+    const intervalButtons = document.querySelectorAll('.interval-btn');
+    const exportViewBtn = document.getElementById('exportViewBtn');
     const erlangModal = document.getElementById('erlangModal');
     const modalCloseBtn = document.getElementById('modalCloseBtn');
 
+    // Adjustment elements
+    const volumeAdjustSlider = document.getElementById('volumeAdjustSlider');
+    const volumeAdjustValue = document.getElementById('volumeAdjustValue');
+    const applyVolumeAdjust = document.getElementById('applyVolumeAdjust');
+    const dayAdjustSlider = document.getElementById('dayAdjustSlider');
+    const dayAdjustValue = document.getElementById('dayAdjustValue');
+    const applyDayAdjust = document.getElementById('applyDayAdjust');
+    const timeAdjustSlider = document.getElementById('timeAdjustSlider');
+    const timeAdjustValue = document.getElementById('timeAdjustValue');
+    const applyTimeAdjust = document.getElementById('applyTimeAdjust');
+    const slAdjustSlider = document.getElementById('slAdjustSlider');
+    const slAdjustValue = document.getElementById('slAdjustValue');
+    const applySLAdjust = document.getElementById('applySLAdjust');
+    const saveAdjustmentsBtn = document.getElementById('saveAdjustmentsBtn');
+    const resetAdjustmentsBtn = document.getElementById('resetAdjustmentsBtn');
+    const adjustmentSummary = document.getElementById('adjustmentSummary');
+
     // Forecast data storage
     let forecastData = {
-      type: null,
+      type: 'manual',
       parameters: {},
       results: null,
-      rawData: []
+      rawData: [],
+      adjustments: [],
+      intervalView: '60',
+      currentView: 'table'
     };
 
     // Initialize pattern visualization
@@ -1069,7 +1434,7 @@
 
       renderPattern('standard');
       
-      intervalPatternSelect.addEventListener('change', function() {
+      document.getElementById('intervalPattern').addEventListener('change', function() {
         renderPattern(this.value);
       });
     }
@@ -1084,13 +1449,30 @@
       return total;
     }
 
+    // Update slider values
+    volumeAdjustSlider.addEventListener('input', function() {
+      volumeAdjustValue.textContent = `${this.value}%`;
+    });
+
+    dayAdjustSlider.addEventListener('input', function() {
+      dayAdjustValue.textContent = `${this.value}%`;
+    });
+
+    timeAdjustSlider.addEventListener('input', function() {
+      timeAdjustValue.textContent = `${this.value}%`;
+    });
+
+    slAdjustSlider.addEventListener('input', function() {
+      slAdjustValue.textContent = `${this.value}%`;
+    });
+
     // Tab switching
-    tabs.forEach(tab => {
+    mainTabs.forEach(tab => {
       tab.addEventListener('click', function() {
-        const tabName = this.getAttribute('data-tab');
+        const tabName = this.getAttribute('data-main-tab');
         
         // Update active tab
-        tabs.forEach(t => t.classList.remove('active'));
+        mainTabs.forEach(t => t.classList.remove('active'));
         this.classList.add('active');
         
         // Show corresponding content
@@ -1101,8 +1483,76 @@
           }
         });
         
-        forecastData.type = tabName;
-        updateStatus(`Ready for ${tabName} forecast input`);
+        updateStatus(`Viewing ${tabName}`);
+        
+        // If forecast tab, update display if data exists
+        if (tabName === 'forecast' && forecastData.results) {
+          updateForecastDisplay();
+        }
+      });
+    });
+
+    subTabs.forEach(tab => {
+      tab.addEventListener('click', function() {
+        const tabName = this.getAttribute('data-sub-tab');
+        
+        // Update active tab
+        subTabs.forEach(t => t.classList.remove('active'));
+        this.classList.add('active');
+        
+        // Show corresponding content
+        const subContents = document.querySelectorAll('#settingsContent .tab-content');
+        subContents.forEach(content => {
+          content.classList.remove('active');
+          if (content.id === `${tabName}Content`) {
+            content.classList.add('active');
+          }
+        });
+      });
+    });
+
+    // View switching
+    viewButtons.forEach(btn => {
+      btn.addEventListener('click', function() {
+        const viewName = this.getAttribute('data-view');
+        
+        // Update active button
+        viewButtons.forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        
+        // Show corresponding view
+        const viewContents = document.querySelectorAll('#forecastContent .tab-content');
+        viewContents.forEach(content => {
+          content.classList.remove('active');
+          if (content.id === `${viewName}View`) {
+            content.classList.add('active');
+          }
+        });
+        
+        forecastData.currentView = viewName;
+        
+        // Update view if data exists
+        if (forecastData.results) {
+          updateForecastDisplay();
+        }
+      });
+    });
+
+    // Interval switching
+    intervalButtons.forEach(btn => {
+      btn.addEventListener('click', function() {
+        const interval = this.getAttribute('data-interval');
+        
+        // Update active button
+        intervalButtons.forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        
+        forecastData.intervalView = interval;
+        
+        // Update view if data exists
+        if (forecastData.results) {
+          updateForecastDisplay();
+        }
       });
     });
 
@@ -1117,7 +1567,6 @@
         };
       }
 
-      // Erlang C formula
       erlangC(A, N) {
         if (N <= 0 || A <= 0) return 0;
         if (N <= A) return 1;
@@ -1136,17 +1585,15 @@
         return top / bottom;
       }
 
-      // Calculate service level
       serviceLevel(A, N, targetTime, aht) {
         const Pw = this.erlangC(A, N);
         const exponent = -(N - A) * (targetTime / aht);
         return 1 - (Pw * Math.exp(exponent));
       }
 
-      // Find required agents for target service level
       requiredAgents(volume, aht, targetSL, targetTime, intervalSeconds) {
         const lambda = volume / intervalSeconds;
-        const A = lambda * aht; // Offered traffic in Erlangs
+        const A = lambda * aht;
         
         let N = Math.max(1, Math.ceil(A));
         let maxIterations = 100;
@@ -1158,7 +1605,6 @@
         return N;
       }
 
-      // Calculate occupancy
       occupancy(volume, aht, agents, intervalSeconds) {
         if (agents <= 0) return 0;
         const lambda = volume / intervalSeconds;
@@ -1171,15 +1617,11 @@
 
     // Generate forecast
     async function generateForecast() {
-      const forecastType = forecastData.type || 'manual';
-      
       // Validate inputs
-      if (forecastType === 'manual') {
-        const total = updateDistributionTotal();
-        if (Math.abs(total - 100) > 0.1) {
-          alert(`Day distribution must total 100% (currently ${total.toFixed(1)}%). Please adjust the percentages.`);
-          return;
-        }
+      const total = updateDistributionTotal();
+      if (Math.abs(total - 100) > 0.1) {
+        alert(`Day distribution must total 100% (currently ${total.toFixed(1)}%). Please adjust the percentages.`);
+        return;
       }
 
       // Show progress
@@ -1196,24 +1638,18 @@
         shrinkage: parseFloat(document.getElementById('shrinkageRate').value) / 100,
         abandonment: parseFloat(document.getElementById('abandonmentRate').value) / 100,
         confidence: parseFloat(document.getElementById('confidenceLevel').value) / 100,
-        intervalLength: parseInt(document.getElementById('intervalLength').value) || 60
+        intervalLength: 60, // Base interval for generation
+        forecastDays: parseInt(document.getElementById('forecastPeriod').value) || 30,
+        seasonality: parseFloat(document.getElementById('seasonalityFactor').value) / 100,
+        growth: parseFloat(document.getElementById('growthRate').value) / 100
       };
 
       forecastData.parameters = params;
       updateProgress(30);
 
-      // Generate forecast data based on type
-      let forecastResults = [];
-      
       try {
-        if (forecastType === 'manual') {
-          forecastResults = await generateManualForecast(params);
-        } else if (forecastType === 'historical') {
-          forecastResults = await generateHistoricalForecast(params);
-        } else {
-          forecastResults = await generateImportForecast(params);
-        }
-        
+        // Generate forecast data
+        const forecastResults = await generateManualForecast(params);
         updateProgress(70);
         
         // Apply Erlang C calculations
@@ -1222,7 +1658,19 @@
         forecastData.rawData = forecastResults;
         
         updateProgress(90);
-        displayResults(finalResults, params);
+        
+        // Switch to forecast view
+        mainTabs.forEach(t => t.classList.remove('active'));
+        document.querySelector('[data-main-tab="forecast"]').classList.add('active');
+        
+        tabContents.forEach(content => {
+          content.classList.remove('active');
+          if (content.id === 'forecastContent') {
+            content.classList.add('active');
+          }
+        });
+        
+        updateForecastDisplay();
         updateProgress(100);
         
         setTimeout(() => {
@@ -1239,11 +1687,10 @@
       }
     }
 
-    // Generate manual forecast
+    // Generate manual forecast with AHT variation
     async function generateManualForecast(params) {
       const totalWeeklyVolume = parseFloat(document.getElementById('totalWeeklyVolume').value);
       const intervalLength = params.intervalLength;
-      const intervalsPerHour = 60 / intervalLength;
       
       // Get day distribution
       const dayDistribution = {
@@ -1256,7 +1703,7 @@
         sun: parseFloat(document.getElementById('daySun').value) / 100
       };
       
-      // Get pattern
+      // Get volume pattern
       const patternName = document.getElementById('intervalPattern').value;
       const patterns = {
         standard: [0.02, 0.03, 0.04, 0.06, 0.08, 0.10, 0.12, 0.14, 0.16, 0.18, 0.20, 0.22, 0.20, 0.18, 0.16, 0.14, 0.12, 0.10, 0.08, 0.06, 0.04, 0.03, 0.02, 0.01],
@@ -1267,93 +1714,77 @@
       
       const hourlyPattern = patterns[patternName] || patterns.standard;
       
-      // Generate 4 weeks of data
+      // Get AHT pattern
+      const ahtPattern = {};
+      ahtInputs.forEach(input => {
+        const period = parseInt(input.getAttribute('data-period'));
+        ahtPattern[period] = parseFloat(input.value) / 100;
+      });
+      
+      // Map hours to AHT periods
+      const hourToPeriod = (hour) => {
+        if (hour >= 0 && hour < 4) return 0;   // 12am-4am
+        if (hour >= 4 && hour < 8) return 1;   // 4am-8am
+        if (hour >= 8 && hour < 12) return 2;  // 8am-12pm
+        if (hour >= 12 && hour < 16) return 3; // 12pm-4pm
+        if (hour >= 16 && hour < 20) return 4; // 4pm-8pm
+        return 5; // 8pm-12am
+      };
+      
+      // Generate forecast days
       const results = [];
       const startDate = new Date();
       startDate.setHours(0, 0, 0, 0);
       
       const daysOfWeek = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
       
-      for (let day = 0; day < 28; day++) {
+      for (let day = 0; day < params.forecastDays; day++) {
         const currentDate = new Date(startDate);
         currentDate.setDate(startDate.getDate() + day);
         
-        const dayName = daysOfWeek[currentDate.getDay()];
+        const dayName = daysOfWeek[currentDate.getDate() % 7];
         const dayFactor = dayDistribution[dayName] || 0;
         
-        // Calculate daily volume
-        const dailyVolume = totalWeeklyVolume * dayFactor;
+        // Calculate daily volume with growth and seasonality
+        const dailyVolume = totalWeeklyVolume * dayFactor * params.seasonality * Math.pow(1 + params.growth, day/7);
         
-        // Distribute across intervals
+        // Distribute across hours
         for (let hour = 0; hour < 24; hour++) {
           const hourFactor = hourlyPattern[hour];
           const hourlyVolume = dailyVolume * hourFactor;
           
-          // Distribute across intervals within the hour
-          const volumePerInterval = hourlyVolume / intervalsPerHour;
+          // Calculate AHT for this hour based on pattern
+          const period = hourToPeriod(hour);
+          const ahtFactor = ahtPattern[period] || 1;
+          const hourlyAHT = params.avgAHT * ahtFactor;
           
-          for (let interval = 0; interval < intervalsPerHour; interval++) {
-            const intervalStart = new Date(currentDate);
-            intervalStart.setHours(hour, interval * intervalLength, 0, 0);
-            
-            results.push({
-              date: intervalStart.toISOString().split('T')[0],
-              time: `${String(hour).padStart(2, '0')}:${String(interval * intervalLength).padStart(2, '0')}`,
-              datetime: intervalStart,
-              volume: Math.max(0, Math.round(volumePerInterval)),
-              aht: params.avgAHT,
-              dayOfWeek: dayName,
-              hour: hour,
-              interval: interval
-            });
-          }
+          // Create interval entry
+          const intervalStart = new Date(currentDate);
+          intervalStart.setHours(hour, 0, 0, 0);
+          
+          results.push({
+            date: intervalStart.toISOString().split('T')[0],
+            time: `${String(hour).padStart(2, '0')}:00`,
+            datetime: intervalStart,
+            volume: Math.max(0, Math.round(hourlyVolume)),
+            aht: Math.round(hourlyAHT),
+            dayOfWeek: dayName,
+            hour: hour,
+            dayOfWeekIndex: currentDate.getDay()
+          });
         }
       }
       
       return results;
     }
 
-    // Generate historical forecast (simplified)
-    async function generateHistoricalForecast(params) {
-      // In a real implementation, this would process uploaded historical data
-      // For now, return mock data
-      return generateMockData(params);
-    }
-
-    // Generate import forecast
-    async function generateImportForecast(params) {
-      const fileInput = document.getElementById('importFile');
-      if (!fileInput.files || fileInput.files.length === 0) {
-        throw new Error('Please select a file to import');
-      }
-      
-      const file = fileInput.files[0];
-      const text = await file.text();
-      
-      // Parse CSV
-      const rows = parseCSV(text);
-      if (rows.length === 0) {
-        throw new Error('No valid data found in file');
-      }
-      
-      // Convert to forecast format
-      return rows.map(row => ({
-        date: row.date || row.datetime?.split(' ')[0],
-        time: row.time || row.datetime?.split(' ')[1],
-        datetime: parseDate(row.datetime || `${row.date} ${row.time}`),
-        volume: parseFloat(row.volume) || 0,
-        aht: parseFloat(row.aht) || params.avgAHT,
-        queue: row.queue || 'Default'
-      }));
-    }
-
-    // Apply Erlang C calculations to forecast data
+    // Apply Erlang C calculations
     function applyErlangCalculations(forecastData, params) {
-      const intervalSeconds = params.intervalLength * 60;
+      const intervalSeconds = 3600; // Hourly intervals
       
       return forecastData.map(item => {
         const volume = item.volume;
-        const aht = item.aht || params.avgAHT;
+        const aht = item.aht;
         
         // Calculate required agents
         const requiredAgents = erlangCalculator.requiredAgents(
@@ -1384,13 +1815,13 @@
         );
         
         // Calculate FTE (assuming 8-hour shifts)
-        const fte = requiredWithShrinkage * (params.intervalLength / 60) / 8;
+        const fte = requiredWithShrinkage / 8;
         
         return {
           ...item,
           requiredAgents: Math.ceil(requiredAgents),
           requiredWithShrinkage: Math.ceil(requiredWithShrinkage),
-          fte: Math.max(0.125, Math.ceil(fte * 8) / 8), // Round to nearest 0.125
+          fte: Math.max(0.125, Math.ceil(fte * 8) / 8),
           serviceLevel: Math.min(1, serviceLevel),
           occupancy: Math.min(1, occupancy),
           workHours: (volume * aht) / 3600
@@ -1398,30 +1829,121 @@
       });
     }
 
-    // Display results
-    function displayResults(results, params) {
-      // Calculate totals
-      const totalVolume = results.reduce((sum, r) => sum + r.volume, 0);
-      const totalAgents = results.reduce((sum, r) => sum + r.requiredWithShrinkage, 0);
-      const totalFTE = results.reduce((sum, r) => sum + r.fte, 0);
-      const totalHours = results.reduce((sum, r) => sum + r.workHours, 0);
-      const avgAgentsPerInterval = totalAgents / results.length;
+    // Update forecast display based on current view and interval
+    function updateForecastDisplay() {
+      if (!forecastData.results || forecastData.results.length === 0) return;
       
-      // Update summary tiles
-      document.getElementById('resultTotalVolume').textContent = totalVolume.toLocaleString();
-      document.getElementById('resultRequiredFTE').textContent = totalFTE.toFixed(1);
-      document.getElementById('resultAvgStaff').textContent = avgAgentsPerInterval.toFixed(1);
-      document.getElementById('resultTotalHours').textContent = Math.round(totalHours);
+      const interval = forecastData.intervalView;
+      const view = forecastData.currentView;
       
-      // Update table
+      let displayData = aggregateDataByInterval(forecastData.results, interval);
+      
+      if (view === 'table') {
+        displayTableView(displayData, interval);
+      } else if (view === 'chart') {
+        displayChartView(displayData, interval);
+      } else if (view === 'summary') {
+        displaySummaryView(displayData);
+      }
+      
+      updateSummaryTiles(displayData);
+    }
+
+    // Aggregate data by interval
+    function aggregateDataByInterval(data, interval) {
+      if (interval === 'day') {
+        // Aggregate by day
+        const dayMap = new Map();
+        
+        data.forEach(item => {
+          const dateKey = item.date;
+          if (!dayMap.has(dateKey)) {
+            dayMap.set(dateKey, {
+              date: item.date,
+              dayOfWeek: item.dayOfWeek,
+              volume: 0,
+              aht: 0,
+              requiredWithShrinkage: 0,
+              fte: 0,
+              serviceLevel: 0,
+              occupancy: 0,
+              workHours: 0,
+              count: 0
+            });
+          }
+          
+          const dayData = dayMap.get(dateKey);
+          dayData.volume += item.volume;
+          dayData.aht += item.aht;
+          dayData.requiredWithShrinkage += item.requiredWithShrinkage;
+          dayData.fte += item.fte;
+          dayData.serviceLevel += item.serviceLevel;
+          dayData.occupancy += item.occupancy;
+          dayData.workHours += item.workHours;
+          dayData.count++;
+        });
+        
+        // Calculate averages
+        return Array.from(dayMap.values()).map(day => ({
+          ...day,
+          aht: Math.round(day.aht / day.count),
+          serviceLevel: day.serviceLevel / day.count,
+          occupancy: day.occupancy / day.count
+        }));
+        
+      } else if (interval === '60') {
+        // Already hourly, no aggregation needed
+        return data;
+        
+      } else {
+        // Aggregate to 15 or 30 minute intervals
+        const intervalMinutes = parseInt(interval);
+        const aggregated = [];
+        
+        for (let i = 0; i < data.length; i += 60/intervalMinutes) {
+          const slice = data.slice(i, i + 60/intervalMinutes);
+          if (slice.length === 0) continue;
+          
+          const first = slice[0];
+          const aggregatedItem = {
+            ...first,
+            time: `${String(first.hour).padStart(2, '0')}:${String(((i % (60/intervalMinutes)) * intervalMinutes)).padStart(2, '0')}`,
+            volume: 0,
+            aht: 0,
+            requiredWithShrinkage: 0,
+            fte: 0,
+            serviceLevel: 0,
+            occupancy: 0,
+            workHours: 0
+          };
+          
+          slice.forEach(item => {
+            aggregatedItem.volume += item.volume / (60/intervalMinutes);
+            aggregatedItem.aht += item.aht / (60/intervalMinutes);
+            aggregatedItem.requiredWithShrinkage += item.requiredWithShrinkage / (60/intervalMinutes);
+            aggregatedItem.fte += item.fte / (60/intervalMinutes);
+            aggregatedItem.serviceLevel += item.serviceLevel / (60/intervalMinutes);
+            aggregatedItem.occupancy += item.occupancy / (60/intervalMinutes);
+            aggregatedItem.workHours += item.workHours / (60/intervalMinutes);
+          });
+          
+          aggregated.push(aggregatedItem);
+        }
+        
+        return aggregated;
+      }
+    }
+
+    // Display table view
+    function displayTableView(data, interval) {
       const tableBody = document.getElementById('forecastTableBody');
       tableBody.innerHTML = '';
       
       // Show first 100 rows
-      const displayRows = results.slice(0, 100);
+      const displayRows = data.slice(0, 100);
       
       displayRows.forEach(result => {
-        const date = new Date(result.datetime);
+        const date = new Date(result.date);
         const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
         
         const row = document.createElement('tr');
@@ -1439,64 +1961,126 @@
         tableBody.appendChild(row);
       });
       
-      if (results.length > 100) {
+      if (data.length > 100) {
         const moreRow = document.createElement('tr');
         moreRow.innerHTML = `
           <td colspan="9" class="center" style="padding: 20px; color: var(--text-light);">
-            ... and ${results.length - 100} more intervals (${results.length} total)
+            ... and ${data.length - 100} more intervals (${data.length} total)
           </td>
         `;
         tableBody.appendChild(moreRow);
       }
-      
-      // Show results section
-      resultsSection.style.display = 'block';
-      
-      // Create charts
-      createCharts(results);
     }
 
-    // Create charts
-    function createCharts(results) {
+    // Display chart view
+    function displayChartView(data, interval) {
+      // Group data for charts
+      const labels = [];
+      const volumes = [];
+      const staff = [];
+      const serviceLevels = [];
+      const occupancies = [];
+      
+      const displayCount = Math.min(50, data.length);
+      const step = Math.ceil(data.length / displayCount);
+      
+      for (let i = 0; i < data.length; i += step) {
+        const item = data[i];
+        labels.push(`${item.date} ${item.time}`);
+        volumes.push(item.volume);
+        staff.push(item.requiredWithShrinkage);
+        serviceLevels.push(item.serviceLevel * 100);
+        occupancies.push(item.occupancy * 100);
+      }
+      
+      // Update or create charts
+      updateChart('volumeChart', labels, volumes, 'Volume', 'bar', 'rgba(74, 140, 125, 0.7)');
+      updateChart('staffingChart', labels, staff, 'Staff Required', 'line', 'rgba(99, 171, 143, 1)');
+      updateChart('slChart', labels, serviceLevels, 'Service Level %', 'line', 'rgba(22, 163, 74, 1)');
+      updateChart('occupancyChart', labels, occupancies, 'Occupancy %', 'line', 'rgba(245, 158, 11, 1)');
+    }
+
+    // Display summary view
+    function displaySummaryView(data) {
       // Group by day of week
       const dayGroups = {};
-      results.forEach(result => {
-        const date = new Date(result.datetime);
-        const day = date.getDay();
-        if (!dayGroups[day]) dayGroups[day] = { volume: 0, staff: 0, count: 0 };
-        dayGroups[day].volume += result.volume;
-        dayGroups[day].staff += result.requiredWithShrinkage;
+      data.forEach(item => {
+        const day = item.dayOfWeek;
+        if (!dayGroups[day]) {
+          dayGroups[day] = {
+            volume: 0,
+            staff: 0,
+            sl: 0,
+            occupancy: 0,
+            count: 0
+          };
+        }
+        dayGroups[day].volume += item.volume;
+        dayGroups[day].staff += item.requiredWithShrinkage;
+        dayGroups[day].sl += item.serviceLevel;
+        dayGroups[day].occupancy += item.occupancy;
         dayGroups[day].count++;
       });
       
-      const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-      const volumeData = [];
-      const staffData = [];
+      const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+      const volumeByDay = [];
+      const staffByDay = [];
+      const slByDay = [];
       
-      for (let i = 0; i < 7; i++) {
-        if (dayGroups[i]) {
-          volumeData.push(dayGroups[i].volume);
-          staffData.push(dayGroups[i].staff / dayGroups[i].count);
+      dayNames.forEach(day => {
+        const key = day.toLowerCase().substring(0, 3);
+        if (dayGroups[key]) {
+          volumeByDay.push(dayGroups[key].volume);
+          staffByDay.push(dayGroups[key].staff / dayGroups[key].count);
+          slByDay.push((dayGroups[key].sl / dayGroups[key].count) * 100);
         } else {
-          volumeData.push(0);
-          staffData.push(0);
+          volumeByDay.push(0);
+          staffByDay.push(0);
+          slByDay.push(0);
         }
+      });
+      
+      // Update daily summary chart
+      updateDailySummaryChart(dayNames, volumeByDay, staffByDay, slByDay);
+    }
+
+    // Update summary tiles
+    function updateSummaryTiles(data) {
+      const totalVolume = data.reduce((sum, r) => sum + r.volume, 0);
+      const totalFTE = data.reduce((sum, r) => sum + r.fte, 0);
+      const peakStaff = Math.max(...data.map(r => r.requiredWithShrinkage));
+      const avgSL = data.reduce((sum, r) => sum + r.serviceLevel, 0) / data.length;
+      const totalHours = data.reduce((sum, r) => sum + r.workHours, 0);
+      const avgOccupancy = data.reduce((sum, r) => sum + r.occupancy, 0) / data.length;
+      
+      document.getElementById('resultTotalVolume').textContent = Math.round(totalVolume).toLocaleString();
+      document.getElementById('resultRequiredFTE').textContent = totalFTE.toFixed(1);
+      document.getElementById('resultPeakStaff').textContent = Math.round(peakStaff);
+      document.getElementById('resultAvgSL').textContent = (avgSL * 100).toFixed(1) + '%';
+      document.getElementById('resultTotalHours').textContent = Math.round(totalHours);
+      document.getElementById('resultAvgOccupancy').textContent = (avgOccupancy * 100).toFixed(1) + '%';
+    }
+
+    // Update chart
+    function updateChart(canvasId, labels, data, label, type, color) {
+      const ctx = document.getElementById(canvasId).getContext('2d');
+      
+      if (window[canvasId + 'Chart']) {
+        window[canvasId + 'Chart'].destroy();
       }
       
-      // Volume chart
-      const volumeCtx = document.getElementById('volumeChart').getContext('2d');
-      if (window.volumeChart) window.volumeChart.destroy();
-      
-      window.volumeChart = new Chart(volumeCtx, {
-        type: 'bar',
+      window[canvasId + 'Chart'] = new Chart(ctx, {
+        type: type,
         data: {
-          labels: dayNames,
+          labels: labels,
           datasets: [{
-            label: 'Volume',
-            data: volumeData,
-            backgroundColor: 'rgba(74, 140, 125, 0.7)',
-            borderColor: 'rgba(74, 140, 125, 1)',
-            borderWidth: 1
+            label: label,
+            data: data,
+            backgroundColor: type === 'bar' ? color : 'rgba(255, 255, 255, 0)',
+            borderColor: color,
+            borderWidth: type === 'line' ? 2 : 0,
+            fill: type === 'line',
+            tension: 0.4
           }]
         },
         options: {
@@ -1508,104 +2092,279 @@
           },
           scales: {
             y: {
-              beginAtZero: true,
+              beginAtZero: true
+            },
+            x: {
+              ticks: {
+                maxRotation: 45,
+                minRotation: 45
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // Update daily summary chart
+    function updateDailySummaryChart(labels, volumes, staff, serviceLevels) {
+      const ctx = document.getElementById('dailySummaryChart').getContext('2d');
+      
+      if (window.dailySummaryChart) {
+        window.dailySummaryChart.destroy();
+      }
+      
+      window.dailySummaryChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'Volume',
+              data: volumes,
+              backgroundColor: 'rgba(74, 140, 125, 0.7)',
+              yAxisID: 'y'
+            },
+            {
+              label: 'Avg Staff',
+              data: staff,
+              type: 'line',
+              borderColor: 'rgba(99, 171, 143, 1)',
+              backgroundColor: 'rgba(99, 171, 143, 0.1)',
+              borderWidth: 2,
+              fill: true,
+              yAxisID: 'y1'
+            },
+            {
+              label: 'Service Level %',
+              data: serviceLevels,
+              type: 'line',
+              borderColor: 'rgba(22, 163, 74, 1)',
+              borderWidth: 2,
+              yAxisID: 'y2'
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          interaction: {
+            mode: 'index',
+            intersect: false
+          },
+          scales: {
+            y: {
+              type: 'linear',
+              display: true,
+              position: 'left',
               title: {
                 display: true,
                 text: 'Volume'
               }
-            }
-          }
-        }
-      });
-      
-      // Staffing chart
-      const staffCtx = document.getElementById('staffingChart').getContext('2d');
-      if (window.staffChart) window.staffChart.destroy();
-      
-      window.staffChart = new Chart(staffCtx, {
-        type: 'line',
-        data: {
-          labels: dayNames,
-          datasets: [{
-            label: 'Average Staff Required',
-            data: staffData,
-            backgroundColor: 'rgba(99, 171, 143, 0.1)',
-            borderColor: 'rgba(99, 171, 143, 1)',
-            borderWidth: 2,
-            tension: 0.4,
-            fill: true
-          }]
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: {
-              display: false
-            }
-          },
-          scales: {
-            y: {
-              beginAtZero: true,
+            },
+            y1: {
+              type: 'linear',
+              display: true,
+              position: 'right',
               title: {
                 display: true,
-                text: 'Staff Required'
+                text: 'Avg Staff'
+              },
+              grid: {
+                drawOnChartArea: false
               }
+            },
+            y2: {
+              type: 'linear',
+              display: false,
+              position: 'right',
+              min: 0,
+              max: 100
             }
           }
         }
       });
     }
 
-    // Helper functions
-    function parseCSV(text) {
-      const lines = text.split(/\r?\n/).filter(line => line.trim());
-      if (lines.length === 0) return [];
+    // Adjustment functions
+    applyVolumeAdjust.addEventListener('click', () => {
+      const adjustment = parseFloat(volumeAdjustSlider.value) / 100;
+      applyGlobalAdjustment('volume', adjustment);
+    });
+
+    applyDayAdjust.addEventListener('click', () => {
+      const day = document.getElementById('dayOfWeekSelect').value;
+      const adjustment = parseFloat(dayAdjustSlider.value) / 100;
+      applyDayAdjustment(day, adjustment);
+    });
+
+    applyTimeAdjust.addEventListener('click', () => {
+      const period = document.getElementById('timePeriodSelect').value;
+      const adjustment = parseFloat(timeAdjustSlider.value) / 100;
+      applyTimeAdjustment(period, adjustment);
+    });
+
+    applySLAdjust.addEventListener('click', () => {
+      const newSL = parseFloat(slAdjustSlider.value) / 100;
+      applyServiceLevelAdjustment(newSL);
+    });
+
+    function applyGlobalAdjustment(type, adjustment) {
+      if (!forecastData.results) return;
       
-      const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
-      const rows = [];
-      
-      for (let i = 1; i < lines.length; i++) {
-        const values = lines[i].split(',');
-        const row = {};
-        headers.forEach((header, index) => {
-          row[header] = values[index] ? values[index].trim() : '';
-        });
-        rows.push(row);
-      }
-      
-      return rows;
-    }
-    
-    function parseDate(dateString) {
-      if (!dateString) return new Date();
-      return new Date(dateString);
-    }
-    
-    function generateMockData(params) {
-      const results = [];
-      const startDate = new Date();
-      
-      for (let i = 0; i < 28; i++) { // 4 weeks
-        const date = new Date(startDate);
-        date.setDate(startDate.getDate() + i);
-        
-        for (let hour = 8; hour < 18; hour++) { // 8am to 6pm
-          const volume = 10 + Math.floor(Math.random() * 20);
-          
-          results.push({
-            date: date.toISOString().split('T')[0],
-            time: `${String(hour).padStart(2, '0')}:00`,
-            datetime: new Date(date.getFullYear(), date.getMonth(), date.getDate(), hour, 0, 0),
-            volume: volume,
-            aht: params.avgAHT + Math.floor(Math.random() * 60) - 30,
-            dayOfWeek: ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][date.getDay()]
-          });
+      forecastData.results.forEach(item => {
+        if (type === 'volume') {
+          item.volume = Math.max(0, Math.round(item.volume * (1 + adjustment)));
         }
+      });
+      
+      // Recalculate Erlang C
+      const recalculated = applyErlangCalculations(forecastData.results, forecastData.parameters);
+      forecastData.results = recalculated;
+      
+      // Record adjustment
+      forecastData.adjustments.push({
+        type: 'global',
+        value: adjustment,
+        timestamp: new Date().toISOString()
+      });
+      
+      updateForecastDisplay();
+      updateAdjustmentSummary();
+      updateStatus(`Applied global ${type} adjustment: ${(adjustment * 100).toFixed(1)}%`);
+    }
+
+    function applyDayAdjustment(day, adjustment) {
+      if (!forecastData.results) return;
+      
+      const dayMap = {
+        'mon': 1, 'tue': 2, 'wed': 3, 'thu': 4, 'fri': 5, 'sat': 6, 'sun': 0
+      };
+      
+      forecastData.results.forEach(item => {
+        if (day === 'all' || item.dayOfWeekIndex === dayMap[day]) {
+          item.volume = Math.max(0, Math.round(item.volume * (1 + adjustment)));
+        }
+      });
+      
+      // Recalculate Erlang C
+      const recalculated = applyErlangCalculations(forecastData.results, forecastData.parameters);
+      forecastData.results = recalculated;
+      
+      // Record adjustment
+      forecastData.adjustments.push({
+        type: 'day',
+        day: day,
+        value: adjustment,
+        timestamp: new Date().toISOString()
+      });
+      
+      updateForecastDisplay();
+      updateAdjustmentSummary();
+      updateStatus(`Applied ${day} adjustment: ${(adjustment * 100).toFixed(1)}%`);
+    }
+
+    function applyTimeAdjustment(period, adjustment) {
+      if (!forecastData.results) return;
+      
+      forecastData.results.forEach(item => {
+        const hour = item.hour;
+        let apply = false;
+        
+        switch (period) {
+          case 'all': apply = true; break;
+          case 'morning': apply = hour >= 8 && hour < 12; break;
+          case 'afternoon': apply = hour >= 12 && hour < 16; break;
+          case 'evening': apply = hour >= 16 && hour < 20; break;
+          case 'night': apply = hour >= 20 || hour < 8; break;
+        }
+        
+        if (apply) {
+          item.volume = Math.max(0, Math.round(item.volume * (1 + adjustment)));
+        }
+      });
+      
+      // Recalculate Erlang C
+      const recalculated = applyErlangCalculations(forecastData.results, forecastData.parameters);
+      forecastData.results = recalculated;
+      
+      // Record adjustment
+      forecastData.adjustments.push({
+        type: 'time',
+        period: period,
+        value: adjustment,
+        timestamp: new Date().toISOString()
+      });
+      
+      updateForecastDisplay();
+      updateAdjustmentSummary();
+      updateStatus(`Applied ${period} adjustment: ${(adjustment * 100).toFixed(1)}%`);
+    }
+
+    function applyServiceLevelAdjustment(newSL) {
+      if (!forecastData.results) return;
+      
+      // Update parameters
+      forecastData.parameters.targetSL = newSL;
+      
+      // Recalculate Erlang C with new SL
+      const recalculated = applyErlangCalculations(forecastData.results, forecastData.parameters);
+      forecastData.results = recalculated;
+      
+      // Record adjustment
+      forecastData.adjustments.push({
+        type: 'service_level',
+        value: newSL,
+        timestamp: new Date().toISOString()
+      });
+      
+      updateForecastDisplay();
+      updateAdjustmentSummary();
+      updateStatus(`Service level target updated to ${(newSL * 100).toFixed(1)}%`);
+    }
+
+    function updateAdjustmentSummary() {
+      if (forecastData.adjustments.length === 0) {
+        adjustmentSummary.innerHTML = `
+          <p style="color: var(--text-light); text-align: center; padding: 20px;">
+            No adjustments applied yet.
+          </p>
+        `;
+        return;
       }
       
-      return results;
+      const recent = forecastData.adjustments.slice(-5).reverse();
+      let html = '<div style="padding: 10px;">';
+      
+      recent.forEach(adj => {
+        let description = '';
+        switch (adj.type) {
+          case 'global':
+            description = `Global volume ${adj.value >= 0 ? '+' : ''}${(adj.value * 100).toFixed(1)}%`;
+            break;
+          case 'day':
+            description = `${adj.day} volume ${adj.value >= 0 ? '+' : ''}${(adj.value * 100).toFixed(1)}%`;
+            break;
+          case 'time':
+            description = `${adj.period} volume ${adj.value >= 0 ? '+' : ''}${(adj.value * 100).toFixed(1)}%`;
+            break;
+          case 'service_level':
+            description = `Service level target ${(adj.value * 100).toFixed(1)}%`;
+            break;
+        }
+        
+        const time = new Date(adj.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        html += `
+          <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border-color);">
+            <span>${description}</span>
+            <span style="color: var(--text-light); font-size: 12px;">${time}</span>
+          </div>
+        `;
+      });
+      
+      html += '</div>';
+      adjustmentSummary.innerHTML = html;
     }
-    
+
+    // Helper functions
     function updateProgress(percent) {
       progressFill.style.width = `${percent}%`;
     }
@@ -1617,13 +2376,14 @@
     
     function clearForecast() {
       forecastData = {
-        type: null,
+        type: 'manual',
         parameters: {},
         results: null,
-        rawData: []
+        rawData: [],
+        adjustments: [],
+        intervalView: '60',
+        currentView: 'table'
       };
-      
-      resultsSection.style.display = 'none';
       
       // Reset form values
       document.getElementById('totalWeeklyVolume').value = 1000;
@@ -1633,7 +2393,18 @@
       });
       updateDistributionTotal();
       
-      updateStatus('Ready for forecast input');
+      // Reset adjustment sliders
+      volumeAdjustSlider.value = 0;
+      volumeAdjustValue.textContent = '0%';
+      dayAdjustSlider.value = 0;
+      dayAdjustValue.textContent = '0%';
+      timeAdjustSlider.value = 0;
+      timeAdjustValue.textContent = '0%';
+      slAdjustSlider.value = 80;
+      slAdjustValue.textContent = '80%';
+      
+      updateAdjustmentSummary();
+      updateStatus('Settings cleared');
     }
     
     function downloadTemplate() {
@@ -1654,24 +2425,25 @@
       link.click();
     }
     
-    function downloadResults() {
+    function exportView() {
       if (!forecastData.results || forecastData.results.length === 0) {
-        alert('No forecast results to download');
+        alert('No forecast results to export');
         return;
       }
       
-      const headers = ['Date', 'Time', 'Queue', 'Volume', 'AHT_Seconds', 'Required_Staff', 'FTE', 'Service_Level', 'Occupancy', 'Work_Hours'];
-      const rows = forecastData.results.map(result => [
+      const interval = forecastData.intervalView;
+      const data = aggregateDataByInterval(forecastData.results, interval);
+      
+      const headers = ['Date', 'Time', 'Volume', 'AHT_Seconds', 'Required_Staff', 'FTE', 'Service_Level', 'Occupancy'];
+      const rows = data.map(result => [
         result.date,
-        result.time,
-        result.queue || 'Default',
-        result.volume,
-        result.aht,
-        result.requiredWithShrinkage,
+        result.time || '00:00',
+        Math.round(result.volume),
+        Math.round(result.aht),
+        Math.round(result.requiredWithShrinkage),
         result.fte.toFixed(3),
         (result.serviceLevel * 100).toFixed(1),
-        (result.occupancy * 100).toFixed(1),
-        result.workHours.toFixed(2)
+        (result.occupancy * 100).toFixed(1)
       ]);
       
       const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
@@ -1679,27 +2451,50 @@
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      link.download = `forecast_${new Date().toISOString().split('T')[0]}.csv`;
+      link.download = `forecast_${interval}min_${new Date().toISOString().split('T')[0]}.csv`;
       link.click();
     }
 
+    saveAdjustmentsBtn.addEventListener('click', () => {
+      if (!forecastData.results) {
+        alert('No forecast to save');
+        return;
+      }
+      
+      // In a real application, this would save to a server
+      updateStatus('Adjustments saved (simulated)');
+    });
+
+    resetAdjustmentsBtn.addEventListener('click', () => {
+      if (!forecastData.rawData || forecastData.rawData.length === 0) {
+        alert('No original forecast data to revert to');
+        return;
+      }
+      
+      // Revert to original data
+      const recalculated = applyErlangCalculations(forecastData.rawData, forecastData.parameters);
+      forecastData.results = recalculated;
+      forecastData.adjustments = [];
+      
+      updateForecastDisplay();
+      updateAdjustmentSummary();
+      updateStatus('All adjustments reset');
+    });
+
+    // Initialize
+    initializePatternVisualization();
+    updateDistributionTotal();
+    updateStatus('Ready for forecast input');
+    
     // Event Listeners
     generateForecastBtn.addEventListener('click', generateForecast);
     clearForecastBtn.addEventListener('click', clearForecast);
     downloadTemplateBtn.addEventListener('click', downloadTemplate);
-    downloadResultsBtn.addEventListener('click', downloadResults);
+    exportViewBtn.addEventListener('click', exportView);
     
     distributionInputs.forEach(input => {
       input.addEventListener('input', updateDistributionTotal);
     });
-    
-    // Initialize
-    initializePatternVisualization();
-    updateDistributionTotal();
-    
-    // Set default forecast type
-    forecastData.type = 'manual';
-    updateStatus('Ready for manual forecast input');
     
     // Prevent form submission
     document.addEventListener('submit', function(e) {
@@ -1707,23 +2502,6 @@
     });
 
     // Modal functionality
-    document.querySelectorAll('[data-erlang-info]').forEach(el => {
-      el.addEventListener('click', () => {
-        erlangModal.style.display = 'flex';
-      });
-    });
-
-    modalCloseBtn.addEventListener('click', () => {
-      erlangModal.style.display = 'none';
-    });
-
-    erlangModal.addEventListener('click', (e) => {
-      if (e.target === erlangModal) {
-        erlangModal.style.display = 'none';
-      }
-    });
-
-    // Add info button to header
     const infoBtn = document.createElement('button');
     infoBtn.innerHTML = 'ℹ️ Erlang C Info';
     infoBtn.style.cssText = `
@@ -1737,8 +2515,20 @@
       font-size: 12px;
       font-weight: 600;
     `;
-    infoBtn.setAttribute('data-erlang-info', 'true');
+    infoBtn.addEventListener('click', () => {
+      erlangModal.style.display = 'flex';
+    });
     document.querySelector('.brand').appendChild(infoBtn);
+
+    modalCloseBtn.addEventListener('click', () => {
+      erlangModal.style.display = 'none';
+    });
+
+    erlangModal.addEventListener('click', (e) => {
+      if (e.target === erlangModal) {
+        erlangModal.style.display = 'none';
+      }
+    });
   </script>
 </body>
 </html>
