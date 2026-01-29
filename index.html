@@ -1,0 +1,1744 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>WFM Forecasting Tool | Erlang C Model</title>
+  <style>
+    :root {
+      --primary-color: #63AB8F;
+      --secondary-color: #4A8C7D;
+      --border-color: #DEE2E6;
+      --light-bg: #F8F9FA;
+      --card-bg: #FFFFFF;
+      --text-color: #2C3E50;
+      --text-light: #6C757D;
+      --warn: #f59e0b;
+      --bad: #dc2626;
+      --good: #16a34a;
+      --chart-1: #4A8C7D;
+      --chart-2: #63AB8F;
+      --chart-3: #A8D5BA;
+      --chart-4: #C7E8D3;
+    }
+    
+    body, h1, h2, h3, h4, h5, h6, p, div, span, label, button, input, select, textarea, th, td, li, ul, ol {
+      font-family: 'Aptos', 'Segoe UI', system-ui, -apple-system, Arial, sans-serif;
+    }
+    
+    body {
+      margin: 0;
+      padding: 20px;
+      background: var(--light-bg);
+      color: var(--text-color);
+      min-height: 100vh;
+    }
+    
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid var(--border-color);
+    }
+    
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .brand h1 {
+      margin: 0;
+      font-size: 28px;
+      color: var(--secondary-color);
+      font-weight: 800;
+    }
+    
+    .brand .subtitle {
+      color: var(--text-light);
+      font-weight: 600;
+      font-size: 14px;
+      margin-left: 8px;
+    }
+    
+    .status-indicator {
+      background: white;
+      padding: 10px 16px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      font-size: 14px;
+      min-width: 200px;
+      text-align: center;
+    }
+
+    /* Main Layout */
+    .main-layout {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+    
+    .cards-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+    
+    @media (max-width: 768px) {
+      .cards-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Card Styling */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.08);
+    }
+    
+    .card:hover {
+      box-shadow: 0 2px 8px rgba(0,0,0,.1);
+    }
+    
+    .card-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid var(--border-color);
+    }
+    
+    .card-title h2 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--secondary-color);
+    }
+    
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 900;
+      background: rgba(99, 171, 143, 0.1);
+      color: var(--secondary-color);
+      border: 1px solid rgba(99, 171, 143, 0.3);
+    }
+
+    /* Form Controls */
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 8px;
+      font-size: 14px;
+      color: var(--text-color);
+    }
+    
+    select, input, textarea, button {
+      padding: 12px 14px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      background: var(--card-bg);
+      font-size: 14px;
+      width: 100%;
+      box-sizing: border-box;
+      transition: all 0.2s ease;
+    }
+    
+    select:focus, input:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(99, 171, 143, 0.1);
+    }
+    
+    input[type="file"] {
+      padding: 10px;
+      background: #fff;
+      border: 2px dashed var(--border-color);
+    }
+    
+    input[type="file"]:hover {
+      border-color: var(--primary-color);
+    }
+    
+    button {
+      background: var(--primary-color);
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .2s;
+      border: none;
+    }
+    
+    button:hover {
+      background: var(--secondary-color);
+      transform: translateY(-1px);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    
+    button.secondary {
+      background: #fff;
+      color: var(--primary-color);
+      border: 2px solid var(--primary-color);
+    }
+    
+    button.secondary:hover {
+      background: rgba(99, 171, 143, 0.1);
+      border-color: var(--secondary-color);
+      color: var(--secondary-color);
+    }
+    
+    button:disabled {
+      background: var(--text-light);
+      cursor: not-allowed;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+
+    /* Row layouts */
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    
+    .row-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+    }
+    
+    .row-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+    
+    @media (max-width: 768px) {
+      .row, .row-3, .row-4 {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    .full-width {
+      grid-column: 1 / -1;
+    }
+
+    /* Button Groups */
+    .btn-group {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border-color);
+    }
+    
+    .btn-group button {
+      flex: 1;
+      min-width: 140px;
+    }
+
+    /* Day Distribution Grid */
+    .day-distribution-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 12px;
+      margin-top: 10px;
+    }
+    
+    .day-cell {
+      text-align: center;
+    }
+    
+    .day-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--secondary-color);
+      margin-bottom: 4px;
+    }
+    
+    .day-input {
+      width: 70px;
+      text-align: center;
+      margin: 0 auto;
+      padding: 8px;
+    }
+    
+    @media (max-width: 768px) {
+      .day-distribution-grid {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .day-distribution-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    /* Interval Pattern Visualization */
+    .pattern-visualization {
+      height: 120px;
+      background: rgba(99, 171, 143, 0.05);
+      border-radius: 8px;
+      margin-top: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .pattern-bars {
+      display: flex;
+      height: 100%;
+      align-items: flex-end;
+      padding: 10px;
+      gap: 2px;
+    }
+    
+    .pattern-bar {
+      flex: 1;
+      background: var(--chart-1);
+      border-radius: 2px 2px 0 0;
+      transition: height 0.3s ease;
+      min-height: 2px;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 20px;
+      background: white;
+      border-radius: 8px 8px 0 0;
+      overflow: hidden;
+    }
+    
+    .tab {
+      padding: 14px 24px;
+      background: none;
+      border: none;
+      border-bottom: 3px solid transparent;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      color: var(--text-light);
+      transition: all 0.2s;
+      position: relative;
+    }
+    
+    .tab.active {
+      color: var(--primary-color);
+      border-bottom-color: var(--primary-color);
+      background: rgba(99, 171, 143, 0.05);
+    }
+    
+    .tab:hover:not(.active) {
+      background: rgba(99, 171, 143, 0.05);
+      color: var(--secondary-color);
+    }
+    
+    .tab-content {
+      display: none;
+    }
+    
+    .tab-content.active {
+      display: block;
+    }
+
+    /* Results Section */
+    .results-section {
+      margin-top: 32px;
+      padding-top: 24px;
+      border-top: 2px solid var(--border-color);
+    }
+    
+    .results-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+    
+    .results-header h2 {
+      margin: 0;
+      font-size: 24px;
+      color: var(--secondary-color);
+    }
+    
+    .summary-tiles {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin: 24px 0;
+    }
+    
+    .tile {
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 20px;
+      background: #fff;
+      text-align: center;
+    }
+    
+    .tile .label {
+      color: var(--text-light);
+      font-weight: 800;
+      font-size: 13px;
+      letter-spacing: .3px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    
+    .tile .value {
+      font-size: 28px;
+      font-weight: 900;
+      margin-top: 4px;
+      color: var(--secondary-color);
+      line-height: 1.2;
+    }
+    
+    .tile .subtext {
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--text-light);
+      line-height: 1.4;
+    }
+
+    /* Charts */
+    .charts-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin: 24px 0;
+    }
+    
+    @media (max-width: 1024px) {
+      .charts-container {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    .chart-card {
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 20px;
+      background: #fff;
+    }
+    
+    .chart-title {
+      margin: 0 0 16px;
+      color: var(--secondary-color);
+      font-size: 16px;
+      font-weight: 700;
+    }
+    
+    canvas {
+      display: block;
+      width: 100% !important;
+      height: 300px !important;
+    }
+
+    /* Forecast Table */
+    .table-container {
+      max-height: 600px;
+      overflow: auto;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      margin-top: 24px;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      background: white;
+    }
+    
+    thead th {
+      background: var(--primary-color);
+      color: white;
+      text-align: left;
+      padding: 16px 12px;
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: .3px;
+    }
+    
+    tbody td {
+      padding: 12px;
+      border-bottom: 1px solid var(--border-color);
+      vertical-align: middle;
+    }
+    
+    tbody tr:hover {
+      background: rgba(99, 171, 143, 0.05);
+    }
+    
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+    
+    .center {
+      text-align: center;
+    }
+    
+    .right {
+      text-align: right;
+    }
+
+    /* Help Text */
+    .help-text {
+      font-size: 12px;
+      color: var(--text-light);
+      margin-top: 6px;
+      line-height: 1.4;
+    }
+    
+    .note {
+      background: rgba(99, 171, 143, 0.05);
+      border-left: 4px solid var(--primary-color);
+      border-radius: 8px;
+      padding: 14px;
+      margin-top: 20px;
+      font-size: 13px;
+      color: var(--text-color);
+      line-height: 1.5;
+    }
+
+    /* Progress Bar */
+    .progress-bar {
+      height: 8px;
+      background: var(--border-color);
+      border-radius: 4px;
+      overflow: hidden;
+      margin: 20px 0;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      background: var(--primary-color);
+      transition: width 0.3s ease;
+    }
+
+    /* Modal for Erlang C Explanation */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .modal {
+      background: white;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 600px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    
+    .modal-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--primary-color);
+      color: white;
+      border-radius: 12px 12px 0 0;
+    }
+    
+    .modal-header h2 {
+      margin: 0;
+      font-size: 20px;
+    }
+    
+    .modal-close {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+      padding: 0;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+    }
+    
+    .modal-body {
+      padding: 24px;
+    }
+
+    /* Footer */
+    .footer {
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border-color);
+      text-align: center;
+      color: var(--text-light);
+      font-size: 12px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      body {
+        padding: 10px;
+      }
+      
+      .card {
+        padding: 16px;
+      }
+      
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+      }
+      
+      .status-indicator {
+        width: 100%;
+        min-width: unset;
+      }
+      
+      .tab {
+        padding: 12px 16px;
+        font-size: 14px;
+      }
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: var(--primary-color);
+      border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--secondary-color);
+    }
+  </style>
+  <!-- Chart.js Library -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <div class="brand">
+        <h1>WFM Forecasting Tool</h1>
+        <span class="subtitle">Erlang C Model</span>
+      </div>
+      <div class="status-indicator" id="statusIndicator">
+        Ready for forecast input
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-layout">
+      <!-- Input Source Tabs -->
+      <div class="card">
+        <div class="tabs">
+          <button class="tab active" data-tab="historical">📊 Historical Data</button>
+          <button class="tab" data-tab="manual">📝 Manual Input</button>
+          <button class="tab" data-tab="import">📁 Import Data</button>
+        </div>
+
+        <!-- Historical Data Tab -->
+        <div id="historicalContent" class="tab-content active">
+          <div class="form-group">
+            <label for="historicalFile">Upload Historical Data (CSV)</label>
+            <input type="file" id="historicalFile" accept=".csv">
+            <div class="help-text">
+              Required columns: datetime, queue, volume, aht_seconds<br>
+              Optional columns: service_level, occupancy, abandonment_rate
+            </div>
+          </div>
+
+          <div class="row-3">
+            <div class="form-group">
+              <label for="forecastPeriod">Forecast Period</label>
+              <select id="forecastPeriod">
+                <option value="7">7 days (1 week)</option>
+                <option value="14">14 days (2 weeks)</option>
+                <option value="30" selected>30 days (1 month)</option>
+                <option value="60">60 days (2 months)</option>
+                <option value="90">90 days (3 months)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="seasonalityFactor">Seasonality Factor (%)</label>
+              <input type="number" id="seasonalityFactor" min="0" max="200" value="100" step="1">
+              <div class="help-text">Adjust for weekly/monthly patterns</div>
+            </div>
+
+            <div class="form-group">
+              <label for="growthRate">Growth Rate (%)</label>
+              <input type="number" id="growthRate" min="-50" max="200" value="0" step="0.5">
+              <div class="help-text">Expected increase/decrease in volume</div>
+            </div>
+          </div>
+
+          <div class="note">
+            <strong>How it works:</strong> The forecast will analyze historical patterns, apply seasonality adjustments and growth rates, then distribute volume across intervals using Erlang C calculations.
+          </div>
+        </div>
+
+        <!-- Manual Input Tab -->
+        <div id="manualContent" class="tab-content">
+          <div class="form-group">
+            <label for="totalWeeklyVolume">Total Weekly Volume</label>
+            <input type="number" id="totalWeeklyVolume" min="1" value="1000" step="1">
+            <div class="help-text">Total contacts expected per week</div>
+          </div>
+
+          <div class="form-group">
+            <label>Day of Week Distribution (%)</label>
+            <div class="day-distribution-grid">
+              <div class="day-cell">
+                <div class="day-label">Mon</div>
+                <input type="number" class="day-input" id="dayMon" min="0" max="100" value="16" step="0.1">
+              </div>
+              <div class="day-cell">
+                <div class="day-label">Tue</div>
+                <input type="number" class="day-input" id="dayTue" min="0" max="100" value="17" step="0.1">
+              </div>
+              <div class="day-cell">
+                <div class="day-label">Wed</div>
+                <input type="number" class="day-input" id="dayWed" min="0" max="100" value="17" step="0.1">
+              </div>
+              <div class="day-cell">
+                <div class="day-label">Thu</div>
+                <input type="number" class="day-input" id="dayThu" min="0" max="100" value="17" step="0.1">
+              </div>
+              <div class="day-cell">
+                <div class="day-label">Fri</div>
+                <input type="number" class="day-input" id="dayFri" min="0" max="100" value="17" step="0.1">
+              </div>
+              <div class="day-cell">
+                <div class="day-label">Sat</div>
+                <input type="number" class="day-input" id="daySat" min="0" max="100" value="10" step="0.1">
+              </div>
+              <div class="day-cell">
+                <div class="day-label">Sun</div>
+                <input type="number" class="day-input" id="daySun" min="0" max="100" value="6" step="0.1">
+              </div>
+            </div>
+            <div class="help-text" id="distributionTotal">Total: 100%</div>
+          </div>
+
+          <div class="row">
+            <div class="form-group">
+              <label for="intervalPattern">Interval Distribution Pattern</label>
+              <select id="intervalPattern">
+                <option value="standard">Standard (Peak at 10am-2pm)</option>
+                <option value="morning">Morning Peak (8am-12pm)</option>
+                <option value="evening">Evening Peak (2pm-6pm)</option>
+                <option value="flat">Flat Distribution</option>
+                <option value="custom">Custom Pattern</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="intervalLength">Interval Length (minutes)</label>
+              <select id="intervalLength">
+                <option value="15">15 minutes</option>
+                <option value="30">30 minutes</option>
+                <option value="60" selected>60 minutes</option>
+                <option value="120">120 minutes</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="patternVisualization" class="pattern-visualization">
+            <div class="pattern-bars" id="patternBars">
+              <!-- Pattern bars will be generated by JavaScript -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Import Data Tab -->
+        <div id="importContent" class="tab-content">
+          <div class="form-group">
+            <label for="importFile">Import Forecast Data (CSV)</label>
+            <input type="file" id="importFile" accept=".csv">
+            <div class="help-text">
+              Format: date, time, queue, volume, aht, required_staff<br>
+              Or use generated forecasts from other systems
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="importSource">Data Source</label>
+            <select id="importSource">
+              <option value="genesys">Genesys Cloud</option>
+              <option value="nice">NICE CXone</option>
+              <option value="verint">Verint</option>
+              <option value="custom">Custom Format</option>
+            </select>
+          </div>
+
+          <div class="note">
+            <strong>Note:</strong> Imported data will be validated and Erlang C calculations will be applied to ensure consistency.
+          </div>
+        </div>
+      </div>
+
+      <!-- Erlang C Parameters Card -->
+      <div class="cards-row">
+        <div class="card">
+          <div class="card-title">
+            <h2>Service Level Targets</h2>
+            <span class="badge">SLA</span>
+          </div>
+          
+          <div class="row">
+            <div class="form-group">
+              <label for="targetServiceLevel">Service Level (%)</label>
+              <input type="number" id="targetServiceLevel" min="1" max="99" value="80" step="1">
+              <div class="help-text">e.g., 80% answered within target time</div>
+            </div>
+
+            <div class="form-group">
+              <label for="targetAnswerTime">Answer Time (seconds)</label>
+              <input type="number" id="targetAnswerTime" min="1" value="20" step="1">
+              <div class="help-text">Target time to answer</div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="maxOccupancy">Maximum Occupancy (%)</label>
+            <input type="number" id="maxOccupancy" min="50" max="95" value="85" step="1">
+            <div class="help-text">Maximum agent utilization</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <h2>Contact & Staff Parameters</h2>
+            <span class="badge">AHT & Shrinkage</span>
+          </div>
+          
+          <div class="row">
+            <div class="form-group">
+              <label for="avgAHT">Average Handle Time (seconds)</label>
+              <input type="number" id="avgAHT" min="1" value="300" step="1">
+              <div class="help-text">Average contact duration</div>
+            </div>
+
+            <div class="form-group">
+              <label for="shrinkageRate">Shrinkage Rate (%)</label>
+              <input type="number" id="shrinkageRate" min="0" max="50" value="30" step="0.5">
+              <div class="help-text">Breaks, meetings, training</div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="abandonmentRate">Abandonment Rate (%)</label>
+            <input type="number" id="abandonmentRate" min="0" max="50" value="5" step="0.1">
+            <div class="help-text">Expected abandonment rate</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Generate Forecast Card -->
+      <div class="card">
+        <div class="card-title">
+          <h2>Generate Forecast</h2>
+          <span class="badge">Calculate</span>
+        </div>
+        
+        <div class="form-group">
+          <label for="confidenceLevel">Confidence Level</label>
+          <select id="confidenceLevel">
+            <option value="80">80% (Standard)</option>
+            <option value="85">85%</option>
+            <option value="90">90% (Recommended)</option>
+            <option value="95">95% (Conservative)</option>
+          </select>
+          <div class="help-text">Statistical confidence for staffing requirements</div>
+        </div>
+
+        <div class="btn-group">
+          <button id="generateForecastBtn" class="primary">📈 Generate Forecast</button>
+          <button id="clearForecastBtn" class="secondary">Clear Forecast</button>
+          <button id="downloadTemplateBtn" class="secondary">📥 Download Template</button>
+        </div>
+
+        <div class="progress-bar" id="progressBar" style="display: none;">
+          <div class="progress-fill" id="progressFill" style="width: 0%;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results Section (initially hidden) -->
+    <div id="resultsSection" class="results-section" style="display: none;">
+      <div class="results-header">
+        <h2>Forecast Results</h2>
+        <button id="downloadResultsBtn" class="secondary">📤 Download Forecast</button>
+      </div>
+
+      <div class="summary-tiles">
+        <div class="tile">
+          <div class="label">Total Volume</div>
+          <div class="value" id="resultTotalVolume">—</div>
+          <div class="subtext">Forecast period</div>
+        </div>
+        <div class="tile">
+          <div class="label">Required FTE</div>
+          <div class="value" id="resultRequiredFTE">—</div>
+          <div class="subtext">Full-time equivalent</div>
+        </div>
+        <div class="tile">
+          <div class="label">Avg Staff/Hour</div>
+          <div class="value" id="resultAvgStaff">—</div>
+          <div class="subtext">Average per hour</div>
+        </div>
+        <div class="tile">
+          <div class="label">Total Hours</div>
+          <div class="value" id="resultTotalHours">—</div>
+          <div class="subtext">Work hours required</div>
+        </div>
+      </div>
+
+      <div class="charts-container">
+        <div class="chart-card">
+          <h3 class="chart-title">Weekly Volume Distribution</h3>
+          <canvas id="volumeChart"></canvas>
+        </div>
+        <div class="chart-card">
+          <h3 class="chart-title">Staffing Requirements</h3>
+          <canvas id="staffingChart"></canvas>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table id="forecastTable">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Day</th>
+              <th class="center">Interval</th>
+              <th class="right">Volume</th>
+              <th class="right">AHT (s)</th>
+              <th class="right">Required Staff</th>
+              <th class="right">FTE</th>
+              <th class="center">Service Level</th>
+              <th class="center">Occupancy</th>
+            </tr>
+          </thead>
+          <tbody id="forecastTableBody">
+            <tr>
+              <td colspan="9" class="center" style="padding: 40px; color: var(--text-light);">
+                No forecast generated yet. Configure parameters and click "Generate Forecast".
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <p>WFM Forecasting Tool v1.0 | Uses industry-standard Erlang C calculations for accurate staffing forecasts</p>
+      <p>For support or questions, contact your WFM administrator</p>
+    </div>
+  </div>
+
+  <!-- Modal for Erlang C Explanation -->
+  <div id="erlangModal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Erlang C Formula Explained</h2>
+        <button class="modal-close" id="modalCloseBtn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <h3>What is Erlang C?</h3>
+        <p>Erlang C is a mathematical formula used in queueing theory to calculate the probability that a customer will have to wait for service in a system with multiple servers (agents).</p>
+        
+        <h3>Key Inputs:</h3>
+        <ul>
+          <li><strong>Volume:</strong> Number of contacts expected</li>
+          <li><strong>AHT:</strong> Average Handle Time per contact</li>
+          <li><strong>Service Level:</strong> Target percentage of contacts answered within target time</li>
+          <li><strong>Target Answer Time:</strong> Maximum acceptable wait time</li>
+          <li><strong>Shrinkage:</strong> Time agents are unavailable (breaks, meetings, etc.)</li>
+        </ul>
+        
+        <h3>How it Works:</h3>
+        <p>The formula calculates the minimum number of agents required to achieve your service level target, considering contact arrival patterns and average handle times.</p>
+        
+        <p><strong>Formula:</strong> P(wait) = (Aⁿ/n!) / (Σ(Aᵏ/k!) + (Aⁿ/n!)*((n/(n-A))))</p>
+        <p>Where A = offered traffic (Erlangs), n = number of agents</p>
+        
+        <div class="note" style="margin-top: 20px;">
+          <strong>Note:</strong> This tool uses Erlang C calculations to provide accurate staffing forecasts based on your specific parameters.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // DOM Elements
+    const statusIndicator = document.getElementById('statusIndicator');
+    const tabs = document.querySelectorAll('.tab');
+    const tabContents = document.querySelectorAll('.tab-content');
+    const generateForecastBtn = document.getElementById('generateForecastBtn');
+    const clearForecastBtn = document.getElementById('clearForecastBtn');
+    const downloadTemplateBtn = document.getElementById('downloadTemplateBtn');
+    const resultsSection = document.getElementById('resultsSection');
+    const progressBar = document.getElementById('progressBar');
+    const progressFill = document.getElementById('progressFill');
+    const downloadResultsBtn = document.getElementById('downloadResultsBtn');
+    const patternBars = document.getElementById('patternBars');
+    const distributionInputs = document.querySelectorAll('.day-input');
+    const distributionTotal = document.getElementById('distributionTotal');
+    const intervalPatternSelect = document.getElementById('intervalPattern');
+    const erlangModal = document.getElementById('erlangModal');
+    const modalCloseBtn = document.getElementById('modalCloseBtn');
+
+    // Forecast data storage
+    let forecastData = {
+      type: null,
+      parameters: {},
+      results: null,
+      rawData: []
+    };
+
+    // Initialize pattern visualization
+    function initializePatternVisualization() {
+      const patterns = {
+        standard: [2, 3, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 20, 18, 16, 14, 12, 10, 8, 6, 4, 3, 2, 1],
+        morning: [1, 2, 5, 10, 15, 20, 25, 30, 35, 40, 35, 30, 25, 20, 15, 10, 5, 3, 2, 1, 1, 1, 1, 1],
+        evening: [1, 1, 1, 1, 1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 25, 20, 15, 10],
+        flat: Array(24).fill(12.5)
+      };
+
+      function renderPattern(patternName) {
+        patternBars.innerHTML = '';
+        const pattern = patterns[patternName] || patterns.standard;
+        
+        pattern.forEach(value => {
+          const bar = document.createElement('div');
+          bar.className = 'pattern-bar';
+          bar.style.height = `${value * 3}px`;
+          bar.title = `${value}%`;
+          patternBars.appendChild(bar);
+        });
+      }
+
+      renderPattern('standard');
+      
+      intervalPatternSelect.addEventListener('change', function() {
+        renderPattern(this.value);
+      });
+    }
+
+    // Calculate day distribution total
+    function updateDistributionTotal() {
+      let total = 0;
+      distributionInputs.forEach(input => {
+        total += parseFloat(input.value) || 0;
+      });
+      distributionTotal.textContent = `Total: ${total.toFixed(1)}%`;
+      return total;
+    }
+
+    // Tab switching
+    tabs.forEach(tab => {
+      tab.addEventListener('click', function() {
+        const tabName = this.getAttribute('data-tab');
+        
+        // Update active tab
+        tabs.forEach(t => t.classList.remove('active'));
+        this.classList.add('active');
+        
+        // Show corresponding content
+        tabContents.forEach(content => {
+          content.classList.remove('active');
+          if (content.id === `${tabName}Content`) {
+            content.classList.add('active');
+          }
+        });
+        
+        forecastData.type = tabName;
+        updateStatus(`Ready for ${tabName} forecast input`);
+      });
+    });
+
+    // Erlang C calculation functions
+    class ErlangCalculator {
+      constructor() {
+        this.confidenceFactors = {
+          80: 0.84,
+          85: 1.04,
+          90: 1.28,
+          95: 1.64
+        };
+      }
+
+      // Erlang C formula
+      erlangC(A, N) {
+        if (N <= 0 || A <= 0) return 0;
+        if (N <= A) return 1;
+        
+        let sum = 1;
+        let term = 1;
+        
+        for (let k = 1; k < N; k++) {
+          term *= A / k;
+          sum += term;
+        }
+        
+        const top = term * (A / N) * (N / (N - A));
+        const bottom = sum + top;
+        
+        return top / bottom;
+      }
+
+      // Calculate service level
+      serviceLevel(A, N, targetTime, aht) {
+        const Pw = this.erlangC(A, N);
+        const exponent = -(N - A) * (targetTime / aht);
+        return 1 - (Pw * Math.exp(exponent));
+      }
+
+      // Find required agents for target service level
+      requiredAgents(volume, aht, targetSL, targetTime, intervalSeconds) {
+        const lambda = volume / intervalSeconds;
+        const A = lambda * aht; // Offered traffic in Erlangs
+        
+        let N = Math.max(1, Math.ceil(A));
+        let maxIterations = 100;
+        
+        while (this.serviceLevel(A, N, targetTime, aht) < targetSL && maxIterations-- > 0) {
+          N++;
+        }
+        
+        return N;
+      }
+
+      // Calculate occupancy
+      occupancy(volume, aht, agents, intervalSeconds) {
+        if (agents <= 0) return 0;
+        const lambda = volume / intervalSeconds;
+        const A = lambda * aht;
+        return Math.min(1, A / agents);
+      }
+    }
+
+    const erlangCalculator = new ErlangCalculator();
+
+    // Generate forecast
+    async function generateForecast() {
+      const forecastType = forecastData.type || 'manual';
+      
+      // Validate inputs
+      if (forecastType === 'manual') {
+        const total = updateDistributionTotal();
+        if (Math.abs(total - 100) > 0.1) {
+          alert(`Day distribution must total 100% (currently ${total.toFixed(1)}%). Please adjust the percentages.`);
+          return;
+        }
+      }
+
+      // Show progress
+      progressBar.style.display = 'block';
+      updateProgress(10);
+      updateStatus('Starting forecast calculation...');
+
+      // Collect parameters
+      const params = {
+        targetSL: parseFloat(document.getElementById('targetServiceLevel').value) / 100,
+        targetTime: parseFloat(document.getElementById('targetAnswerTime').value),
+        maxOccupancy: parseFloat(document.getElementById('maxOccupancy').value) / 100,
+        avgAHT: parseFloat(document.getElementById('avgAHT').value),
+        shrinkage: parseFloat(document.getElementById('shrinkageRate').value) / 100,
+        abandonment: parseFloat(document.getElementById('abandonmentRate').value) / 100,
+        confidence: parseFloat(document.getElementById('confidenceLevel').value) / 100,
+        intervalLength: parseInt(document.getElementById('intervalLength').value) || 60
+      };
+
+      forecastData.parameters = params;
+      updateProgress(30);
+
+      // Generate forecast data based on type
+      let forecastResults = [];
+      
+      try {
+        if (forecastType === 'manual') {
+          forecastResults = await generateManualForecast(params);
+        } else if (forecastType === 'historical') {
+          forecastResults = await generateHistoricalForecast(params);
+        } else {
+          forecastResults = await generateImportForecast(params);
+        }
+        
+        updateProgress(70);
+        
+        // Apply Erlang C calculations
+        const finalResults = applyErlangCalculations(forecastResults, params);
+        forecastData.results = finalResults;
+        forecastData.rawData = forecastResults;
+        
+        updateProgress(90);
+        displayResults(finalResults, params);
+        updateProgress(100);
+        
+        setTimeout(() => {
+          progressBar.style.display = 'none';
+          progressFill.style.width = '0%';
+        }, 1000);
+        
+        updateStatus('Forecast generated successfully');
+        
+      } catch (error) {
+        console.error('Forecast generation error:', error);
+        updateStatus('Error generating forecast: ' + error.message, true);
+        progressBar.style.display = 'none';
+      }
+    }
+
+    // Generate manual forecast
+    async function generateManualForecast(params) {
+      const totalWeeklyVolume = parseFloat(document.getElementById('totalWeeklyVolume').value);
+      const intervalLength = params.intervalLength;
+      const intervalsPerHour = 60 / intervalLength;
+      
+      // Get day distribution
+      const dayDistribution = {
+        mon: parseFloat(document.getElementById('dayMon').value) / 100,
+        tue: parseFloat(document.getElementById('dayTue').value) / 100,
+        wed: parseFloat(document.getElementById('dayWed').value) / 100,
+        thu: parseFloat(document.getElementById('dayThu').value) / 100,
+        fri: parseFloat(document.getElementById('dayFri').value) / 100,
+        sat: parseFloat(document.getElementById('daySat').value) / 100,
+        sun: parseFloat(document.getElementById('daySun').value) / 100
+      };
+      
+      // Get pattern
+      const patternName = document.getElementById('intervalPattern').value;
+      const patterns = {
+        standard: [0.02, 0.03, 0.04, 0.06, 0.08, 0.10, 0.12, 0.14, 0.16, 0.18, 0.20, 0.22, 0.20, 0.18, 0.16, 0.14, 0.12, 0.10, 0.08, 0.06, 0.04, 0.03, 0.02, 0.01],
+        morning: [0.01, 0.02, 0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.35, 0.30, 0.25, 0.20, 0.15, 0.10, 0.05, 0.03, 0.02, 0.01, 0.01, 0.01, 0.01, 0.01],
+        evening: [0.01, 0.01, 0.01, 0.01, 0.01, 0.02, 0.04, 0.06, 0.08, 0.10, 0.12, 0.14, 0.16, 0.18, 0.20, 0.22, 0.24, 0.26, 0.28, 0.30, 0.25, 0.20, 0.15, 0.10],
+        flat: Array(24).fill(1/24)
+      };
+      
+      const hourlyPattern = patterns[patternName] || patterns.standard;
+      
+      // Generate 4 weeks of data
+      const results = [];
+      const startDate = new Date();
+      startDate.setHours(0, 0, 0, 0);
+      
+      const daysOfWeek = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+      
+      for (let day = 0; day < 28; day++) {
+        const currentDate = new Date(startDate);
+        currentDate.setDate(startDate.getDate() + day);
+        
+        const dayName = daysOfWeek[currentDate.getDay()];
+        const dayFactor = dayDistribution[dayName] || 0;
+        
+        // Calculate daily volume
+        const dailyVolume = totalWeeklyVolume * dayFactor;
+        
+        // Distribute across intervals
+        for (let hour = 0; hour < 24; hour++) {
+          const hourFactor = hourlyPattern[hour];
+          const hourlyVolume = dailyVolume * hourFactor;
+          
+          // Distribute across intervals within the hour
+          const volumePerInterval = hourlyVolume / intervalsPerHour;
+          
+          for (let interval = 0; interval < intervalsPerHour; interval++) {
+            const intervalStart = new Date(currentDate);
+            intervalStart.setHours(hour, interval * intervalLength, 0, 0);
+            
+            results.push({
+              date: intervalStart.toISOString().split('T')[0],
+              time: `${String(hour).padStart(2, '0')}:${String(interval * intervalLength).padStart(2, '0')}`,
+              datetime: intervalStart,
+              volume: Math.max(0, Math.round(volumePerInterval)),
+              aht: params.avgAHT,
+              dayOfWeek: dayName,
+              hour: hour,
+              interval: interval
+            });
+          }
+        }
+      }
+      
+      return results;
+    }
+
+    // Generate historical forecast (simplified)
+    async function generateHistoricalForecast(params) {
+      // In a real implementation, this would process uploaded historical data
+      // For now, return mock data
+      return generateMockData(params);
+    }
+
+    // Generate import forecast
+    async function generateImportForecast(params) {
+      const fileInput = document.getElementById('importFile');
+      if (!fileInput.files || fileInput.files.length === 0) {
+        throw new Error('Please select a file to import');
+      }
+      
+      const file = fileInput.files[0];
+      const text = await file.text();
+      
+      // Parse CSV
+      const rows = parseCSV(text);
+      if (rows.length === 0) {
+        throw new Error('No valid data found in file');
+      }
+      
+      // Convert to forecast format
+      return rows.map(row => ({
+        date: row.date || row.datetime?.split(' ')[0],
+        time: row.time || row.datetime?.split(' ')[1],
+        datetime: parseDate(row.datetime || `${row.date} ${row.time}`),
+        volume: parseFloat(row.volume) || 0,
+        aht: parseFloat(row.aht) || params.avgAHT,
+        queue: row.queue || 'Default'
+      }));
+    }
+
+    // Apply Erlang C calculations to forecast data
+    function applyErlangCalculations(forecastData, params) {
+      const intervalSeconds = params.intervalLength * 60;
+      
+      return forecastData.map(item => {
+        const volume = item.volume;
+        const aht = item.aht || params.avgAHT;
+        
+        // Calculate required agents
+        const requiredAgents = erlangCalculator.requiredAgents(
+          volume,
+          aht,
+          params.targetSL,
+          params.targetTime,
+          intervalSeconds
+        );
+        
+        // Apply shrinkage
+        const requiredWithShrinkage = requiredAgents / (1 - params.shrinkage);
+        
+        // Calculate occupancy
+        const occupancy = erlangCalculator.occupancy(
+          volume,
+          aht,
+          requiredWithShrinkage,
+          intervalSeconds
+        );
+        
+        // Calculate service level
+        const serviceLevel = erlangCalculator.serviceLevel(
+          (volume * aht) / intervalSeconds,
+          requiredWithShrinkage,
+          params.targetTime,
+          aht
+        );
+        
+        // Calculate FTE (assuming 8-hour shifts)
+        const fte = requiredWithShrinkage * (params.intervalLength / 60) / 8;
+        
+        return {
+          ...item,
+          requiredAgents: Math.ceil(requiredAgents),
+          requiredWithShrinkage: Math.ceil(requiredWithShrinkage),
+          fte: Math.max(0.125, Math.ceil(fte * 8) / 8), // Round to nearest 0.125
+          serviceLevel: Math.min(1, serviceLevel),
+          occupancy: Math.min(1, occupancy),
+          workHours: (volume * aht) / 3600
+        };
+      });
+    }
+
+    // Display results
+    function displayResults(results, params) {
+      // Calculate totals
+      const totalVolume = results.reduce((sum, r) => sum + r.volume, 0);
+      const totalAgents = results.reduce((sum, r) => sum + r.requiredWithShrinkage, 0);
+      const totalFTE = results.reduce((sum, r) => sum + r.fte, 0);
+      const totalHours = results.reduce((sum, r) => sum + r.workHours, 0);
+      const avgAgentsPerInterval = totalAgents / results.length;
+      
+      // Update summary tiles
+      document.getElementById('resultTotalVolume').textContent = totalVolume.toLocaleString();
+      document.getElementById('resultRequiredFTE').textContent = totalFTE.toFixed(1);
+      document.getElementById('resultAvgStaff').textContent = avgAgentsPerInterval.toFixed(1);
+      document.getElementById('resultTotalHours').textContent = Math.round(totalHours);
+      
+      // Update table
+      const tableBody = document.getElementById('forecastTableBody');
+      tableBody.innerHTML = '';
+      
+      // Show first 100 rows
+      const displayRows = results.slice(0, 100);
+      
+      displayRows.forEach(result => {
+        const date = new Date(result.datetime);
+        const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${result.date}</td>
+          <td>${dayNames[date.getDay()]}</td>
+          <td class="center">${result.time}</td>
+          <td class="right">${Math.round(result.volume)}</td>
+          <td class="right">${Math.round(result.aht)}</td>
+          <td class="right">${Math.round(result.requiredWithShrinkage)}</td>
+          <td class="right">${result.fte.toFixed(2)}</td>
+          <td class="center">${(result.serviceLevel * 100).toFixed(1)}%</td>
+          <td class="center">${(result.occupancy * 100).toFixed(1)}%</td>
+        `;
+        tableBody.appendChild(row);
+      });
+      
+      if (results.length > 100) {
+        const moreRow = document.createElement('tr');
+        moreRow.innerHTML = `
+          <td colspan="9" class="center" style="padding: 20px; color: var(--text-light);">
+            ... and ${results.length - 100} more intervals (${results.length} total)
+          </td>
+        `;
+        tableBody.appendChild(moreRow);
+      }
+      
+      // Show results section
+      resultsSection.style.display = 'block';
+      
+      // Create charts
+      createCharts(results);
+    }
+
+    // Create charts
+    function createCharts(results) {
+      // Group by day of week
+      const dayGroups = {};
+      results.forEach(result => {
+        const date = new Date(result.datetime);
+        const day = date.getDay();
+        if (!dayGroups[day]) dayGroups[day] = { volume: 0, staff: 0, count: 0 };
+        dayGroups[day].volume += result.volume;
+        dayGroups[day].staff += result.requiredWithShrinkage;
+        dayGroups[day].count++;
+      });
+      
+      const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const volumeData = [];
+      const staffData = [];
+      
+      for (let i = 0; i < 7; i++) {
+        if (dayGroups[i]) {
+          volumeData.push(dayGroups[i].volume);
+          staffData.push(dayGroups[i].staff / dayGroups[i].count);
+        } else {
+          volumeData.push(0);
+          staffData.push(0);
+        }
+      }
+      
+      // Volume chart
+      const volumeCtx = document.getElementById('volumeChart').getContext('2d');
+      if (window.volumeChart) window.volumeChart.destroy();
+      
+      window.volumeChart = new Chart(volumeCtx, {
+        type: 'bar',
+        data: {
+          labels: dayNames,
+          datasets: [{
+            label: 'Volume',
+            data: volumeData,
+            backgroundColor: 'rgba(74, 140, 125, 0.7)',
+            borderColor: 'rgba(74, 140, 125, 1)',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              display: false
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: 'Volume'
+              }
+            }
+          }
+        }
+      });
+      
+      // Staffing chart
+      const staffCtx = document.getElementById('staffingChart').getContext('2d');
+      if (window.staffChart) window.staffChart.destroy();
+      
+      window.staffChart = new Chart(staffCtx, {
+        type: 'line',
+        data: {
+          labels: dayNames,
+          datasets: [{
+            label: 'Average Staff Required',
+            data: staffData,
+            backgroundColor: 'rgba(99, 171, 143, 0.1)',
+            borderColor: 'rgba(99, 171, 143, 1)',
+            borderWidth: 2,
+            tension: 0.4,
+            fill: true
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              display: false
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: 'Staff Required'
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // Helper functions
+    function parseCSV(text) {
+      const lines = text.split(/\r?\n/).filter(line => line.trim());
+      if (lines.length === 0) return [];
+      
+      const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+      const rows = [];
+      
+      for (let i = 1; i < lines.length; i++) {
+        const values = lines[i].split(',');
+        const row = {};
+        headers.forEach((header, index) => {
+          row[header] = values[index] ? values[index].trim() : '';
+        });
+        rows.push(row);
+      }
+      
+      return rows;
+    }
+    
+    function parseDate(dateString) {
+      if (!dateString) return new Date();
+      return new Date(dateString);
+    }
+    
+    function generateMockData(params) {
+      const results = [];
+      const startDate = new Date();
+      
+      for (let i = 0; i < 28; i++) { // 4 weeks
+        const date = new Date(startDate);
+        date.setDate(startDate.getDate() + i);
+        
+        for (let hour = 8; hour < 18; hour++) { // 8am to 6pm
+          const volume = 10 + Math.floor(Math.random() * 20);
+          
+          results.push({
+            date: date.toISOString().split('T')[0],
+            time: `${String(hour).padStart(2, '0')}:00`,
+            datetime: new Date(date.getFullYear(), date.getMonth(), date.getDate(), hour, 0, 0),
+            volume: volume,
+            aht: params.avgAHT + Math.floor(Math.random() * 60) - 30,
+            dayOfWeek: ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][date.getDay()]
+          });
+        }
+      }
+      
+      return results;
+    }
+    
+    function updateProgress(percent) {
+      progressFill.style.width = `${percent}%`;
+    }
+    
+    function updateStatus(message, isError = false) {
+      statusIndicator.textContent = message;
+      statusIndicator.style.color = isError ? 'var(--bad)' : 'var(--text-color)';
+    }
+    
+    function clearForecast() {
+      forecastData = {
+        type: null,
+        parameters: {},
+        results: null,
+        rawData: []
+      };
+      
+      resultsSection.style.display = 'none';
+      
+      // Reset form values
+      document.getElementById('totalWeeklyVolume').value = 1000;
+      document.querySelectorAll('.day-input').forEach((input, index) => {
+        const defaults = [16, 17, 17, 17, 17, 10, 6];
+        input.value = defaults[index];
+      });
+      updateDistributionTotal();
+      
+      updateStatus('Ready for forecast input');
+    }
+    
+    function downloadTemplate() {
+      const template = `date,time,queue,volume,aht_seconds,service_level
+2024-01-15,08:00,Voice - Sales,25,350,0.85
+2024-01-15,09:00,Voice - Sales,30,360,0.82
+2024-01-15,10:00,Voice - Sales,35,340,0.88
+2024-01-15,11:00,Voice - Sales,40,330,0.80
+2024-01-15,12:00,Voice - Sales,45,320,0.78
+2024-01-15,13:00,Voice - Sales,40,310,0.85
+2024-01-15,14:00,Voice - Sales,35,300,0.90
+2024-01-15,15:00,Voice - Sales,30,290,0.92`;
+      
+      const blob = new Blob([template], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'forecast_template.csv';
+      link.click();
+    }
+    
+    function downloadResults() {
+      if (!forecastData.results || forecastData.results.length === 0) {
+        alert('No forecast results to download');
+        return;
+      }
+      
+      const headers = ['Date', 'Time', 'Queue', 'Volume', 'AHT_Seconds', 'Required_Staff', 'FTE', 'Service_Level', 'Occupancy', 'Work_Hours'];
+      const rows = forecastData.results.map(result => [
+        result.date,
+        result.time,
+        result.queue || 'Default',
+        result.volume,
+        result.aht,
+        result.requiredWithShrinkage,
+        result.fte.toFixed(3),
+        (result.serviceLevel * 100).toFixed(1),
+        (result.occupancy * 100).toFixed(1),
+        result.workHours.toFixed(2)
+      ]);
+      
+      const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
+      
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `forecast_${new Date().toISOString().split('T')[0]}.csv`;
+      link.click();
+    }
+
+    // Event Listeners
+    generateForecastBtn.addEventListener('click', generateForecast);
+    clearForecastBtn.addEventListener('click', clearForecast);
+    downloadTemplateBtn.addEventListener('click', downloadTemplate);
+    downloadResultsBtn.addEventListener('click', downloadResults);
+    
+    distributionInputs.forEach(input => {
+      input.addEventListener('input', updateDistributionTotal);
+    });
+    
+    // Initialize
+    initializePatternVisualization();
+    updateDistributionTotal();
+    
+    // Set default forecast type
+    forecastData.type = 'manual';
+    updateStatus('Ready for manual forecast input');
+    
+    // Prevent form submission
+    document.addEventListener('submit', function(e) {
+      e.preventDefault();
+    });
+
+    // Modal functionality
+    document.querySelectorAll('[data-erlang-info]').forEach(el => {
+      el.addEventListener('click', () => {
+        erlangModal.style.display = 'flex';
+      });
+    });
+
+    modalCloseBtn.addEventListener('click', () => {
+      erlangModal.style.display = 'none';
+    });
+
+    erlangModal.addEventListener('click', (e) => {
+      if (e.target === erlangModal) {
+        erlangModal.style.display = 'none';
+      }
+    });
+
+    // Add info button to header
+    const infoBtn = document.createElement('button');
+    infoBtn.innerHTML = 'ℹ️ Erlang C Info';
+    infoBtn.style.cssText = `
+      margin-left: 10px;
+      background: rgba(99, 171, 143, 0.1);
+      border: 1px solid var(--primary-color);
+      color: var(--primary-color);
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+    `;
+    infoBtn.setAttribute('data-erlang-info', 'true');
+    document.querySelector('.brand').appendChild(infoBtn);
+  </script>
+</body>
+</html>
