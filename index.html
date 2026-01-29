@@ -577,23 +577,29 @@
       transition: width 0.3s ease;
     }
 
-    /* AHT Pattern Grid - IMPROVED LAYOUT */
+    /* AHT Pattern Grid - FIXED LAYOUT */
     .aht-pattern-grid {
       display: grid;
-      grid-template-columns: repeat(6, 1fr);
-      gap: 10px;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
       margin-top: 10px;
       padding: 15px;
       background: rgba(99, 171, 143, 0.03);
       border-radius: 8px;
       border: 1px solid var(--border-color);
+      max-width: 100%;
+      overflow: hidden;
+    }
+    
+    @media (min-width: 1024px) {
+      .aht-pattern-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
     }
     
     .aht-cell {
       text-align: center;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      min-width: 0;
     }
     
     .aht-label {
@@ -602,14 +608,15 @@
       color: var(--secondary-color);
       margin-bottom: 6px;
       white-space: nowrap;
-      text-align: center;
-      line-height: 1.2;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     
     .aht-input {
-      width: 75px;
+      width: 80px;
+      max-width: 100%;
       text-align: center;
-      padding: 8px 4px;
+      padding: 8px;
       font-size: 13px;
       border: 1px solid var(--border-color);
       border-radius: 6px;
@@ -749,7 +756,7 @@
       }
       
       .aht-pattern-grid {
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(2, 1fr);
       }
       
       .modification-controls .row {
@@ -876,7 +883,7 @@
     }
     
     .modified-value {
-      color: #8b5cf6;
+      color: #8b5cf6 !important;
       font-weight: 700;
     }
     
@@ -898,6 +905,21 @@
       font-size: 13px;
       color: var(--text-color);
       line-height: 1.5;
+    }
+    
+    /* Table Footnote */
+    .table-footnote {
+      font-size: 12px;
+      color: #6C757D;
+      margin-top: 10px;
+      padding: 8px;
+      background: #F8F9FA;
+      border-radius: 4px;
+    }
+    
+    .table-footnote .asterisk {
+      color: #8b5cf6;
+      font-weight: bold;
     }
   </style>
   <!-- Chart.js Library -->
@@ -1245,9 +1267,14 @@
           <div class="subtext">After adjustments</div>
         </div>
         <div class="tile">
-          <div class="label">Required FTE</div>
-          <div class="value" id="resultRequiredFTE">—</div>
+          <div class="label">Original FTE</div>
+          <div class="value" id="resultOriginalFTE">—</div>
           <div class="subtext">Full-time equivalent</div>
+        </div>
+        <div class="tile">
+          <div class="label">Adjusted FTE</div>
+          <div class="value" id="resultAdjustedFTE">—</div>
+          <div class="subtext">After modifications</div>
         </div>
         <div class="tile">
           <div class="label">Peak Staff/Hour</div>
@@ -1258,11 +1285,6 @@
           <div class="label">Avg Service Level</div>
           <div class="value" id="resultAvgSL">—</div>
           <div class="subtext">Weighted average</div>
-        </div>
-        <div class="tile">
-          <div class="label">Modified FTE</div>
-          <div class="value" id="resultModifiedFTE">—</div>
-          <div class="subtext">After adjustments</div>
         </div>
       </div>
 
@@ -1298,7 +1320,7 @@
             </div>
           </div>
           <div class="chart-card">
-            <h3 class="chart-title">Staffing Requirements</h3>
+            <h3 class="chart-title">Staffing Requirements (Original vs Adjusted)</h3>
             <div class="chart-container">
               <canvas id="staffingChart"></canvas>
             </div>
@@ -1329,9 +1351,10 @@
                 <th class="center">Interval</th>
                 <th class="right">Original Volume</th>
                 <th class="right">Modified Volume</th>
-                <th class="right">AHT (s)</th>
+                <th class="right">Original AHT (s)</th>
                 <th class="right">Modified AHT</th>
-                <th class="right">Required Staff</th>
+                <th class="right">Original Staff</th>
+                <th class="right">Adjusted Staff</th>
                 <th class="center">Service Level</th>
               </tr>
             </thead>
@@ -1339,6 +1362,9 @@
               <!-- Table rows will be populated by JavaScript -->
             </tbody>
           </table>
+        </div>
+        <div class="table-footnote">
+          <span class="asterisk">*</span> Purple values indicate adjustments after modifications
         </div>
       </div>
 
@@ -1545,6 +1571,12 @@
       intervalView: '60',
       historicalData: null
     };
+
+    // Chart instances
+    let volumeChart = null;
+    let staffingChart = null;
+    let slChart = null;
+    let ahtChart = null;
 
     // Initialize pattern visualization
     function initializePatternVisualization() {
@@ -1754,6 +1786,7 @@
       
       // Update forecast display
       updateForecastDisplay();
+      updateModificationViews();
     });
 
     // Apply modification to data
@@ -1803,99 +1836,6 @@
       // Recalculate staffing based on modified data
       forecastData.results = recalculateForecast(forecastData.modifiedData);
     }
-
-    // Recalculate forecast with modified data
-    function recalculateForecast(data) {
-      const params = forecastData.parameters;
-      const intervalSeconds = 3600; // Hourly intervals
-      
-      return data.map(item => {
-        const volume = item.volume;
-        const aht = item.aht;
-        
-        // Calculate required agents
-        const requiredAgents = erlangCalculator.requiredAgents(
-          volume,
-          aht,
-          params.targetSL,
-          params.targetTime,
-          intervalSeconds
-        );
-        
-        // Apply shrinkage
-        const requiredWithShrinkage = requiredAgents / (1 - params.shrinkage);
-        
-        // Calculate occupancy
-        const occupancy = erlangCalculator.occupancy(
-          volume,
-          aht,
-          requiredWithShrinkage,
-          intervalSeconds
-        );
-        
-        // Calculate service level
-        const serviceLevel = erlangCalculator.serviceLevel(
-          (volume * aht) / intervalSeconds,
-          requiredWithShrinkage,
-          params.targetTime,
-          aht
-        );
-        
-        // Calculate FTE (assuming 8-hour shifts)
-        const fte = requiredWithShrinkage / 8;
-        
-        return {
-          ...item,
-          requiredAgents: Math.ceil(requiredAgents),
-          requiredWithShrinkage: Math.ceil(requiredWithShrinkage),
-          fte: Math.max(0.125, Math.ceil(fte * 8) / 8),
-          serviceLevel: Math.min(1, serviceLevel),
-          occupancy: Math.min(1, occupancy),
-          workHours: (volume * aht) / 3600,
-          originalVolume: item.originalVolume || item.volume,
-          originalAht: item.originalAht || item.aht
-        };
-      });
-    }
-
-    // Update modification summary
-    function updateModificationSummary() {
-      if (forecastData.modifications.length === 0) {
-        modificationSummary.style.display = 'none';
-        return;
-      }
-      
-      modificationSummary.style.display = 'block';
-      modificationList.innerHTML = '';
-      
-      forecastData.modifications.forEach(mod => {
-        const div = document.createElement('div');
-        div.style.cssText = 'margin: 5px 0; padding: 5px; background: rgba(139, 92, 246, 0.1); border-radius: 4px; font-size: 12px;';
-        
-        const typeText = mod.type === 'volume' ? 'Volume' : 'AHT';
-        const methodText = mod.method === 'percentage' ? `${mod.value}%` : `${mod.value > 0 ? '+' : ''}${mod.value}`;
-        const scopeText = mod.scope === 'interval' ? `${mod.date} ${mod.time}` :
-                         mod.scope === 'daily' ? `${mod.date}` :
-                         `${mod.startDate} to ${mod.endDate}`;
-        
-        div.innerHTML = `<strong>${typeText}:</strong> ${methodText} on ${scopeText} <small>(${mod.timestamp})</small>`;
-        modificationList.appendChild(div);
-      });
-    }
-
-    // Clear modifications
-    clearModificationsBtn.addEventListener('click', function() {
-      if (confirm('Clear all modifications and revert to original forecast?')) {
-        forecastData.modifications = [];
-        forecastData.modifiedData = [];
-        if (forecastData.originalResults) {
-          forecastData.results = JSON.parse(JSON.stringify(forecastData.originalResults));
-        }
-        updateModificationSummary();
-        updateForecastDisplay();
-        updateModificationViews();
-      }
-    });
 
     // Erlang C calculation functions
     class ErlangCalculator {
@@ -1955,6 +1895,103 @@
     }
 
     const erlangCalculator = new ErlangCalculator();
+
+    // Recalculate forecast with modified data
+    function recalculateForecast(data) {
+      const params = forecastData.parameters;
+      const intervalSeconds = 3600; // Hourly intervals
+      
+      return data.map(item => {
+        const volume = item.volume;
+        const aht = item.aht;
+        
+        // Calculate required agents
+        const requiredAgents = erlangCalculator.requiredAgents(
+          volume,
+          aht,
+          params.targetSL,
+          params.targetTime,
+          intervalSeconds
+        );
+        
+        // Apply shrinkage
+        const requiredWithShrinkage = requiredAgents / (1 - params.shrinkage);
+        
+        // Calculate occupancy
+        const occupancy = erlangCalculator.occupancy(
+          volume,
+          aht,
+          requiredWithShrinkage,
+          intervalSeconds
+        );
+        
+        // Calculate service level
+        const serviceLevel = erlangCalculator.serviceLevel(
+          (volume * aht) / intervalSeconds,
+          requiredWithShrinkage,
+          params.targetTime,
+          aht
+        );
+        
+        // Calculate FTE (assuming 8-hour shifts)
+        const fte = requiredWithShrinkage / 8;
+        
+        // Store original staff if not already stored
+        const originalStaff = item.originalStaff || item.requiredWithShrinkage;
+        
+        return {
+          ...item,
+          requiredAgents: Math.ceil(requiredAgents),
+          requiredWithShrinkage: Math.ceil(requiredWithShrinkage),
+          originalStaff: originalStaff, // Store original staff for comparison
+          fte: Math.max(0.125, Math.ceil(fte * 8) / 8),
+          serviceLevel: Math.min(1, serviceLevel),
+          occupancy: Math.min(1, occupancy),
+          workHours: (volume * aht) / 3600,
+          originalVolume: item.originalVolume || item.volume,
+          originalAht: item.originalAht || item.aht
+        };
+      });
+    }
+
+    // Update modification summary
+    function updateModificationSummary() {
+      if (forecastData.modifications.length === 0) {
+        modificationSummary.style.display = 'none';
+        return;
+      }
+      
+      modificationSummary.style.display = 'block';
+      modificationList.innerHTML = '';
+      
+      forecastData.modifications.forEach(mod => {
+        const div = document.createElement('div');
+        div.style.cssText = 'margin: 5px 0; padding: 5px; background: rgba(139, 92, 246, 0.1); border-radius: 4px; font-size: 12px;';
+        
+        const typeText = mod.type === 'volume' ? 'Volume' : 'AHT';
+        const methodText = mod.method === 'percentage' ? `${mod.value}%` : `${mod.value > 0 ? '+' : ''}${mod.value}`;
+        const scopeText = mod.scope === 'interval' ? `${mod.date} ${mod.time}` :
+                         mod.scope === 'daily' ? `${mod.date}` :
+                         `${mod.startDate} to ${mod.endDate}`;
+        
+        div.innerHTML = `<strong>${typeText}:</strong> ${methodText} on ${scopeText} <small>(${mod.timestamp})</small>`;
+        modificationList.appendChild(div);
+      });
+    }
+
+    // Clear modifications
+    clearModificationsBtn.addEventListener('click', function() {
+      if (confirm('Clear all modifications and revert to original forecast?')) {
+        forecastData.modifications = [];
+        forecastData.modifiedData = [];
+        if (forecastData.originalResults) {
+          forecastData.results = JSON.parse(JSON.stringify(forecastData.originalResults));
+        }
+        updateModificationSummary();
+        updateForecastDisplay();
+        updateModificationViews();
+      }
+    });
 
     // Generate forecast
     async function generateForecast() {
@@ -2352,6 +2389,7 @@
           ...item,
           requiredAgents: Math.ceil(requiredAgents),
           requiredWithShrinkage: Math.ceil(requiredWithShrinkage),
+          originalStaff: Math.ceil(requiredWithShrinkage), // Store as original staff
           fte: Math.max(0.125, Math.ceil(fte * 8) / 8),
           serviceLevel: Math.min(1, serviceLevel),
           occupancy: Math.min(1, occupancy),
@@ -2395,6 +2433,7 @@
               aht: 0,
               originalAht: 0,
               requiredWithShrinkage: 0,
+              originalStaff: 0,
               fte: 0,
               serviceLevel: 0,
               occupancy: 0,
@@ -2409,6 +2448,7 @@
           dayData.aht += item.aht;
           dayData.originalAht += item.originalAht || item.aht;
           dayData.requiredWithShrinkage += item.requiredWithShrinkage;
+          dayData.originalStaff += item.originalStaff || item.requiredWithShrinkage;
           dayData.fte += item.fte;
           dayData.serviceLevel += item.serviceLevel;
           dayData.occupancy += item.occupancy;
@@ -2445,6 +2485,7 @@
             aht: 0,
             originalAht: 0,
             requiredWithShrinkage: 0,
+            originalStaff: 0,
             fte: 0,
             serviceLevel: 0,
             occupancy: 0,
@@ -2457,6 +2498,7 @@
             aggregatedItem.aht += item.aht / (60/intervalMinutes);
             aggregatedItem.originalAht += (item.originalAht || item.aht) / (60/intervalMinutes);
             aggregatedItem.requiredWithShrinkage += item.requiredWithShrinkage / (60/intervalMinutes);
+            aggregatedItem.originalStaff += (item.originalStaff || item.requiredWithShrinkage) / (60/intervalMinutes);
             aggregatedItem.fte += item.fte / (60/intervalMinutes);
             aggregatedItem.serviceLevel += item.serviceLevel / (60/intervalMinutes);
             aggregatedItem.occupancy += item.occupancy / (60/intervalMinutes);
@@ -2474,23 +2516,17 @@
     function updateSummaryTiles(data) {
       const totalOriginalVolume = data.reduce((sum, r) => sum + (r.originalVolume || r.volume), 0);
       const totalModifiedVolume = data.reduce((sum, r) => sum + r.volume, 0);
-      const totalFTE = data.reduce((sum, r) => sum + r.fte, 0);
+      const totalOriginalFTE = data.reduce((sum, r) => sum + (r.originalStaff || r.requiredWithShrinkage) / 8, 0);
+      const totalAdjustedFTE = data.reduce((sum, r) => sum + r.requiredWithShrinkage / 8, 0);
       const peakStaff = Math.max(...data.map(r => r.requiredWithShrinkage));
       const avgSL = data.reduce((sum, r) => sum + r.serviceLevel, 0) / data.length;
       
-      // Calculate modified FTE if we have original results
-      let modifiedFTE = totalFTE;
-      if (forecastData.originalResults) {
-        const originalFTE = forecastData.originalResults.reduce((sum, r) => sum + r.fte, 0);
-        modifiedFTE = totalFTE;
-      }
-      
       document.getElementById('resultOriginalVolume').textContent = Math.round(totalOriginalVolume).toLocaleString();
       document.getElementById('resultModifiedVolume').textContent = Math.round(totalModifiedVolume).toLocaleString();
-      document.getElementById('resultRequiredFTE').textContent = totalFTE.toFixed(1);
+      document.getElementById('resultOriginalFTE').textContent = totalOriginalFTE.toFixed(1);
+      document.getElementById('resultAdjustedFTE').textContent = totalAdjustedFTE.toFixed(1);
       document.getElementById('resultPeakStaff').textContent = Math.round(peakStaff);
       document.getElementById('resultAvgSL').textContent = (avgSL * 100).toFixed(1) + '%';
-      document.getElementById('resultModifiedFTE').textContent = modifiedFTE.toFixed(1);
     }
 
     // Update charts
@@ -2500,33 +2536,41 @@
       const labels = chartData.map(item => `${item.date} ${item.time}`);
       const originalVolumes = chartData.map(item => item.originalVolume || item.volume);
       const modifiedVolumes = chartData.map(item => item.volume);
-      const staff = chartData.map(item => item.requiredWithShrinkage);
+      const originalStaff = chartData.map(item => item.originalStaff || item.requiredWithShrinkage);
+      const adjustedStaff = chartData.map(item => item.requiredWithShrinkage);
       const serviceLevels = chartData.map(item => item.serviceLevel * 100);
       const originalAHT = chartData.map(item => item.originalAht || item.aht);
       const modifiedAHT = chartData.map(item => item.aht);
       
       // Volume Chart
-      updateComparisonChart('volumeChart', labels, originalVolumes, modifiedVolumes, 'Original Volume', 'Modified Volume', 'bar');
+      updateComparisonChart('volumeChart', labels, originalVolumes, modifiedVolumes, 
+                           'Original Volume', 'Modified Volume', 'bar');
       
-      // Staffing Chart
-      updateChart('staffingChart', labels, staff, 'Staff Required', 'line', 'rgba(99, 171, 143, 0.2)', 'rgba(99, 171, 143, 1)');
+      // Staffing Chart - Now shows Original vs Adjusted
+      updateComparisonChart('staffingChart', labels, originalStaff, adjustedStaff,
+                           'Original Staff', 'Adjusted Staff', 'line');
       
       // Service Level Chart
-      updateChart('slChart', labels, serviceLevels, 'Service Level %', 'line', 'rgba(22, 163, 74, 0.2)', 'rgba(22, 163, 74, 1)');
+      updateSingleChart('slChart', labels, serviceLevels, 'Service Level %', 'line');
       
       // AHT Chart
-      updateComparisonChart('ahtChart', labels, originalAHT, modifiedAHT, 'Original AHT', 'Modified AHT', 'line');
+      updateComparisonChart('ahtChart', labels, originalAHT, modifiedAHT,
+                           'Original AHT', 'Modified AHT', 'line');
     }
 
     // Update a single chart
-    function updateChart(canvasId, labels, data, label, type, bgColor, borderColor) {
+    function updateSingleChart(canvasId, labels, data, label, type) {
       const ctx = document.getElementById(canvasId).getContext('2d');
       
-      if (window[canvasId + 'Chart']) {
-        window[canvasId + 'Chart'].destroy();
+      // Destroy existing chart if it exists
+      if (window[canvasId]) {
+        window[canvasId].destroy();
       }
       
-      window[canvasId + 'Chart'] = new Chart(ctx, {
+      const bgColor = type === 'line' ? 'rgba(22, 163, 74, 0.2)' : 'rgba(74, 140, 125, 0.7)';
+      const borderColor = type === 'line' ? 'rgba(22, 163, 74, 1)' : 'rgba(74, 140, 125, 1)';
+      
+      window[canvasId] = new Chart(ctx, {
         type: type,
         data: {
           labels: labels,
@@ -2547,6 +2591,11 @@
             legend: {
               position: 'top',
             }
+          },
+          scales: {
+            y: {
+              beginAtZero: true
+            }
           }
         }
       });
@@ -2556,11 +2605,12 @@
     function updateComparisonChart(canvasId, labels, data1, data2, label1, label2, type) {
       const ctx = document.getElementById(canvasId).getContext('2d');
       
-      if (window[canvasId + 'Chart']) {
-        window[canvasId + 'Chart'].destroy();
+      // Destroy existing chart if it exists
+      if (window[canvasId]) {
+        window[canvasId].destroy();
       }
       
-      window[canvasId + 'Chart'] = new Chart(ctx, {
+      window[canvasId] = new Chart(ctx, {
         type: type,
         data: {
           labels: labels,
@@ -2571,7 +2621,8 @@
               backgroundColor: type === 'bar' ? 'rgba(74, 140, 125, 0.7)' : 'rgba(74, 140, 125, 0.2)',
               borderColor: 'rgba(74, 140, 125, 1)',
               borderWidth: type === 'line' ? 2 : 1,
-              fill: type === 'line'
+              fill: type === 'line',
+              tension: 0.4
             },
             {
               label: label2,
@@ -2579,7 +2630,8 @@
               backgroundColor: type === 'bar' ? 'rgba(139, 92, 246, 0.7)' : 'rgba(139, 92, 246, 0.2)',
               borderColor: 'rgba(139, 92, 246, 1)',
               borderWidth: type === 'line' ? 2 : 1,
-              fill: type === 'line'
+              fill: type === 'line',
+              tension: 0.4
             }
           ]
         },
@@ -2589,6 +2641,11 @@
           plugins: {
             legend: {
               position: 'top',
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true
             }
           }
         }
@@ -2606,22 +2663,27 @@
         const date = new Date(result.date);
         const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
         
+        const isVolumeModified = result.volume !== (result.originalVolume || result.volume);
+        const isAHTModified = result.aht !== (result.originalAht || result.aht);
+        const isStaffModified = result.requiredWithShrinkage !== (result.originalStaff || result.requiredWithShrinkage);
+        
         const row = document.createElement('tr');
         row.innerHTML = `
           <td>${result.date}</td>
           <td>${dayNames[date.getDay()]}</td>
           <td class="center">${result.time}</td>
           <td class="right">${Math.round(result.originalVolume || result.volume)}</td>
-          <td class="right ${result.volume !== (result.originalVolume || result.volume) ? 'modified-value' : ''}">
+          <td class="right ${isVolumeModified ? 'modified-value' : ''}">
             ${Math.round(result.volume)}
-            ${result.volume !== (result.originalVolume || result.volume) ? ' *' : ''}
           </td>
           <td class="right">${Math.round(result.originalAht || result.aht)}</td>
-          <td class="right ${result.aht !== (result.originalAht || result.aht) ? 'modified-value' : ''}">
+          <td class="right ${isAHTModified ? 'modified-value' : ''}">
             ${Math.round(result.aht)}
-            ${result.aht !== (result.originalAht || result.aht) ? ' *' : ''}
           </td>
-          <td class="right">${Math.round(result.requiredWithShrinkage)}</td>
+          <td class="right">${Math.round(result.originalStaff || result.requiredWithShrinkage)}</td>
+          <td class="right ${isStaffModified ? 'modified-value' : ''}">
+            ${Math.round(result.requiredWithShrinkage)}
+          </td>
           <td class="center">${(result.serviceLevel * 100).toFixed(1)}%</td>
         `;
         tableBody.appendChild(row);
@@ -2630,7 +2692,7 @@
       if (data.length > 100) {
         const moreRow = document.createElement('tr');
         moreRow.innerHTML = `
-          <td colspan="9" class="center" style="padding: 20px; color: var(--text-light);">
+          <td colspan="10" class="center" style="padding: 20px; color: var(--text-light);">
             ... and ${data.length - 100} more intervals (${data.length} total)
           </td>
         `;
@@ -2648,22 +2710,21 @@
         impactSummary.innerHTML = '<p>No modifications applied yet.</p>';
       } else {
         let volumeChange = 0;
-        let ahtChange = 0;
-        let fteChange = 0;
+        let staffChange = 0;
         
         if (forecastData.originalResults && forecastData.results) {
           const originalTotalVolume = forecastData.originalResults.reduce((sum, r) => sum + r.volume, 0);
           const modifiedTotalVolume = forecastData.results.reduce((sum, r) => sum + r.volume, 0);
-          const originalTotalFTE = forecastData.originalResults.reduce((sum, r) => sum + r.fte, 0);
-          const modifiedTotalFTE = forecastData.results.reduce((sum, r) => sum + r.fte, 0);
+          const originalTotalStaff = forecastData.originalResults.reduce((sum, r) => sum + r.requiredWithShrinkage, 0);
+          const modifiedTotalStaff = forecastData.results.reduce((sum, r) => sum + r.requiredWithShrinkage, 0);
           
           volumeChange = ((modifiedTotalVolume - originalTotalVolume) / originalTotalVolume * 100);
-          fteChange = ((modifiedTotalFTE - originalTotalFTE) / originalTotalFTE * 100);
+          staffChange = ((modifiedTotalStaff - originalTotalStaff) / originalTotalStaff * 100);
         }
         
         impactSummary.innerHTML = `
-          <p><strong>Volume Impact:</strong> ${volumeChange >= 0 ? '+' : ''}${volumeChange.toFixed(1)}%</p>
-          <p><strong>FTE Impact:</strong> ${fteChange >= 0 ? '+' : ''}${fteChange.toFixed(1)}%</p>
+          <p><strong>Volume Impact:</strong> <span class="${volumeChange !== 0 ? 'modified-value' : ''}">${volumeChange >= 0 ? '+' : ''}${volumeChange.toFixed(1)}%</span></p>
+          <p><strong>Staff Impact:</strong> <span class="${staffChange !== 0 ? 'modified-value' : ''}">${staffChange >= 0 ? '+' : ''}${staffChange.toFixed(1)}%</span></p>
           <p><strong>Modifications Applied:</strong> ${forecastData.modifications.length}</p>
           <p><strong>Modified Intervals:</strong> ${forecastData.modifications.reduce((sum, mod) => {
             if (mod.scope === 'interval') return sum + 1;
@@ -2826,7 +2887,7 @@
       const interval = forecastData.intervalView;
       const data = aggregateDataByInterval(forecastData.results, interval);
       
-      const headers = ['Date', 'Time', 'Original_Volume', 'Modified_Volume', 'Original_AHT', 'Modified_AHT', 'Required_Staff', 'FTE', 'Service_Level', 'Occupancy'];
+      const headers = ['Date', 'Time', 'Original_Volume', 'Modified_Volume', 'Original_AHT', 'Modified_AHT', 'Original_Staff', 'Adjusted_Staff', 'FTE', 'Service_Level', 'Occupancy'];
       const rows = data.map(result => [
         result.date,
         result.time,
@@ -2834,6 +2895,7 @@
         Math.round(result.volume),
         Math.round(result.originalAht || result.aht),
         Math.round(result.aht),
+        Math.round(result.originalStaff || result.requiredWithShrinkage),
         Math.round(result.requiredWithShrinkage),
         result.fte.toFixed(3),
         (result.serviceLevel * 100).toFixed(1),
