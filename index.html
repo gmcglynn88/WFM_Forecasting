@@ -1524,6 +1524,10 @@
           <button id="downloadResultsBtn" class="secondary icon-btn">
             <i class="fas fa-file-export"></i> Export Forecast
           </button>
+          <!-- NEW: Add reset filter button -->
+          <button id="resetFilterBtn" class="secondary icon-btn" style="margin-left: 12px;">
+            <i class="fas fa-filter-circle-xmark"></i> Reset Filter
+          </button>
         </div>
       </div>
 
@@ -1588,6 +1592,9 @@
             </div>
             <button id="applyDrilldownBtn" class="secondary icon-btn" style="align-self: flex-end; padding: 8px 16px; font-size: 13px; white-space: nowrap;">
               <i class="fas fa-filter"></i> Apply Filter
+            </button>
+            <button id="clearDrilldownBtn" class="secondary icon-btn" style="align-self: flex-end; padding: 8px 16px; font-size: 13px; white-space: nowrap;">
+              <i class="fas fa-times"></i> Clear Filter
             </button>
           </div>
         </div>
@@ -1878,6 +1885,7 @@
     const generatingSubtext = document.getElementById('generatingSubtext');
     const backToSettingsBtn = document.getElementById('backToSettingsBtn');
     const downloadResultsBtn = document.getElementById('downloadResultsBtn');
+    const resetFilterBtn = document.getElementById('resetFilterBtn'); // NEW: Reset filter button
     const patternBars = document.getElementById('patternBars');
     const distributionInputs = document.querySelectorAll('.day-input');
     const distributionTotal = document.getElementById('distributionTotal');
@@ -1912,6 +1920,7 @@
     const drilldownFromDate = document.getElementById('drilldownFromDate');
     const drilldownToDate = document.getElementById('drilldownToDate');
     const applyDrilldownBtn = document.getElementById('applyDrilldownBtn');
+    const clearDrilldownBtn = document.getElementById('clearDrilldownBtn'); // NEW: Clear drilldown button
 
     // Forecast data storage - UPDATED to include date range
     let forecastData = {
@@ -1926,7 +1935,9 @@
       historicalData: null,
       applyModifications: true,
       drilldownFromDate: null,
-      drilldownToDate: null
+      drilldownToDate: null,
+      isDateFiltered: false, // NEW: Track if date filter is applied
+      filteredResults: null // NEW: Store filtered results
     };
 
     // Chart instances
@@ -2253,6 +2264,11 @@
       
       // Recalculate staffing based on modified data
       forecastData.results = recalculateForecast(forecastData.modifiedData);
+      
+      // If date filter is active, reapply it
+      if (forecastData.isDateFiltered && forecastData.drilldownFromDate && forecastData.drilldownToDate) {
+        applyDateFilter();
+      }
     }
 
     // Erlang C calculation functions
@@ -2506,6 +2522,8 @@
         forecastData.modifiedData = [];
         forecastData.modifications = [];
         forecastData.applyModifications = true;
+        forecastData.isDateFiltered = false; // Reset filter on new forecast
+        forecastData.filteredResults = null;
         toggleModifications.checked = true;
         
         updateGeneratingProgress(80, 'Creating visualizations...');
@@ -2904,19 +2922,45 @@
       });
     }
 
-    // Update forecast display
+    // Update forecast display - UPDATED TO USE FILTERED DATA
     function updateForecastDisplay() {
       if (!forecastData.results) return;
       
       const interval = forecastData.intervalView;
       
-      // Use modified or original data based on toggle
-      let displayData;
-      if (forecastData.applyModifications && forecastData.modifiedData.length > 0) {
-        displayData = aggregateDataByInterval(forecastData.results, interval);
-      } else {
-        displayData = aggregateDataByInterval(forecastData.originalResults || forecastData.results, interval);
+      // Get the data to display (filtered or full)
+      let displayData = forecastData.results;
+      if (forecastData.isDateFiltered && forecastData.filteredResults) {
+        // Use filtered results if date filter is active
+        displayData = forecastData.filteredResults;
       }
+      
+      // Use modified or original data based on toggle
+      if (forecastData.applyModifications && forecastData.modifiedData.length > 0) {
+        // If using filtered data, we need to get the modified version
+        if (forecastData.isDateFiltered) {
+          // Get modified data within the filtered date range
+          displayData = forecastData.modifiedData.filter(item => {
+            return item.date >= forecastData.drilldownFromDate && 
+                   item.date <= forecastData.drilldownToDate;
+          });
+        } else {
+          displayData = forecastData.results;
+        }
+      } else {
+        // Use original data
+        if (forecastData.isDateFiltered) {
+          displayData = forecastData.originalResults.filter(item => {
+            return item.date >= forecastData.drilldownFromDate && 
+                   item.date <= forecastData.drilldownToDate;
+          });
+        } else {
+          displayData = forecastData.originalResults || forecastData.results;
+        }
+      }
+      
+      // Aggregate by interval
+      displayData = aggregateDataByInterval(displayData, interval);
       
       // Update summary tiles
       updateSummaryTiles(displayData);
@@ -3057,7 +3101,7 @@
       document.getElementById('resultAvgSL').textContent = (avgSL * 100).toFixed(1) + '%';
     }
 
-    // Update charts with metric tiles
+    // Update charts with metric tiles - UPDATED TO USE FILTERED DATA
     function updateCharts(data, interval) {
       const chartData = interval === 'day' ? data : data.slice(0, 168);
       
@@ -3261,7 +3305,7 @@
       }
     }
 
-    // Update table
+    // Update table - UPDATED TO USE FILTERED DATA
     function updateTable(data, interval) {
       const tableBody = document.getElementById('forecastTableBody');
       tableBody.innerHTML = '';
@@ -3338,18 +3382,55 @@
       updateDrilldownDetails();
     }
 
-    // UPDATED: Update drilldown details for date range - REMOVED METRIC TILES
-    function updateDrilldownDetails() {
+    // NEW: Apply date filter to all results
+    function applyDateFilter() {
       if (!forecastData.drilldownFromDate || !forecastData.drilldownToDate || !forecastData.results) return;
       
-      // Get data for selected date range
-      let dateData = forecastData.results.filter(r => {
+      // Filter results based on date range
+      forecastData.filteredResults = forecastData.results.filter(r => {
         return r.date >= forecastData.drilldownFromDate && r.date <= forecastData.drilldownToDate;
       });
       
-      // Use modified or original data based on toggle
-      if (!forecastData.applyModifications && forecastData.originalResults) {
-        dateData = forecastData.originalResults.filter(r => {
+      forecastData.isDateFiltered = true;
+      
+      // Update all displays
+      updateForecastDisplay();
+      updateDrilldownDetails();
+      updateStatus(`Showing filtered results: ${forecastData.drilldownFromDate} to ${forecastData.drilldownToDate}`);
+    }
+
+    // NEW: Clear date filter
+    function clearDateFilter() {
+      forecastData.isDateFiltered = false;
+      forecastData.filteredResults = null;
+      forecastData.drilldownFromDate = null;
+      forecastData.drilldownToDate = null;
+      
+      // Reset date inputs to show full range
+      const dates = [...new Set(forecastData.results.map(r => r.date))].sort();
+      if (dates.length > 0) {
+        forecastData.drilldownFromDate = dates[0];
+        forecastData.drilldownToDate = dates[Math.min(6, dates.length - 1)];
+        drilldownFromDate.value = forecastData.drilldownFromDate;
+        drilldownToDate.value = forecastData.drilldownToDate;
+      }
+      
+      // Update all displays
+      updateForecastDisplay();
+      updateDrilldownDetails();
+      updateStatus('Showing full forecast results');
+    }
+
+    // UPDATED: Update drilldown details for date range
+    function updateDrilldownDetails() {
+      if (!forecastData.results) return;
+      
+      // Get data for selected date range
+      let dateData;
+      if (forecastData.isDateFiltered && forecastData.filteredResults) {
+        dateData = forecastData.filteredResults;
+      } else {
+        dateData = forecastData.results.filter(r => {
           return r.date >= forecastData.drilldownFromDate && r.date <= forecastData.drilldownToDate;
         });
       }
@@ -3362,9 +3443,6 @@
       // Get unique days in range
       const uniqueDays = [...new Set(dateData.map(r => r.date))].length;
       
-      // Update main summary tiles with drilldown data
-      updateSummaryTilesFromDrilldown(dateData);
-      
       // Update chart display only
       drilldownDetails.innerHTML = `
         <div style="padding: 15px; background: white; border-radius: 8px; border: 1px solid var(--border-color);">
@@ -3372,6 +3450,7 @@
             <i class="fas fa-chart-line"></i> 
             ${forecastData.drilldownFromDate} to ${forecastData.drilldownToDate}
             ${uniqueDays > 1 ? `(${uniqueDays} days)` : ''}
+            ${forecastData.isDateFiltered ? '<span style="color: var(--modified); font-size: 12px; margin-left: 10px;">(Filter Active)</span>' : ''}
           </h4>
           <div class="drilldown-chart">
             <canvas id="drilldownChart"></canvas>
@@ -3523,11 +3602,26 @@
         let volumeChange = 0;
         let staffChange = 0;
         
-        if (forecastData.originalResults && forecastData.results) {
-          const originalTotalVolume = forecastData.originalResults.reduce((sum, r) => sum + r.volume, 0);
-          const modifiedTotalVolume = forecastData.results.reduce((sum, r) => sum + r.volume, 0);
-          const originalTotalStaff = forecastData.originalResults.reduce((sum, r) => sum + r.requiredWithShrinkage, 0);
-          const modifiedTotalStaff = forecastData.results.reduce((sum, r) => sum + r.requiredWithShrinkage, 0);
+        // Calculate impact based on current view (filtered or full)
+        let currentResults = forecastData.results;
+        if (forecastData.isDateFiltered && forecastData.filteredResults) {
+          currentResults = forecastData.filteredResults;
+        }
+        
+        if (forecastData.originalResults) {
+          // Get original results for comparison (filtered if needed)
+          let originalComparison = forecastData.originalResults;
+          if (forecastData.isDateFiltered) {
+            originalComparison = forecastData.originalResults.filter(r => {
+              return r.date >= forecastData.drilldownFromDate && 
+                     r.date <= forecastData.drilldownToDate;
+            });
+          }
+          
+          const originalTotalVolume = originalComparison.reduce((sum, r) => sum + r.volume, 0);
+          const modifiedTotalVolume = currentResults.reduce((sum, r) => sum + r.volume, 0);
+          const originalTotalStaff = originalComparison.reduce((sum, r) => sum + r.requiredWithShrinkage, 0);
+          const modifiedTotalStaff = currentResults.reduce((sum, r) => sum + r.requiredWithShrinkage, 0);
           
           volumeChange = ((modifiedTotalVolume - originalTotalVolume) / originalTotalVolume * 100);
           staffChange = ((modifiedTotalStaff - originalTotalStaff) / originalTotalStaff * 100);
@@ -3659,7 +3753,9 @@
         historicalData: null,
         applyModifications: true,
         drilldownFromDate: null,
-        drilldownToDate: null
+        drilldownToDate: null,
+        isDateFiltered: false,
+        filteredResults: null
       };
       
       // Reset form values
@@ -3721,7 +3817,11 @@
       
       const interval = forecastData.intervalView;
       let data;
-      if (forecastData.applyModifications && forecastData.modifiedData.length > 0) {
+      
+      // Get the data to download (filtered or full)
+      if (forecastData.isDateFiltered && forecastData.filteredResults) {
+        data = aggregateDataByInterval(forecastData.filteredResults, interval);
+      } else if (forecastData.applyModifications && forecastData.modifiedData.length > 0) {
         data = aggregateDataByInterval(forecastData.results, interval);
       } else {
         data = aggregateDataByInterval(forecastData.originalResults || forecastData.results, interval);
@@ -3751,7 +3851,7 @@
       link.click();
     }
 
-    // NEW: Event listener for apply drilldown button
+    // NEW: Event listener for apply drilldown button - UPDATED TO FILTER ALL RESULTS
     applyDrilldownBtn.addEventListener('click', function() {
       const fromDate = drilldownFromDate.value;
       const toDate = drilldownToDate.value;
@@ -3769,7 +3869,18 @@
       forecastData.drilldownFromDate = fromDate;
       forecastData.drilldownToDate = toDate;
       
-      updateDrilldownDetails();
+      // Apply filter to all results
+      applyDateFilter();
+    });
+
+    // NEW: Event listener for clear drilldown button
+    clearDrilldownBtn.addEventListener('click', function() {
+      clearDateFilter();
+    });
+
+    // NEW: Event listener for reset filter button in header
+    resetFilterBtn.addEventListener('click', function() {
+      clearDateFilter();
     });
 
     // NEW: Event listeners for date inputs to auto-validate
