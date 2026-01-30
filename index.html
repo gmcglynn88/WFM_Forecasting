@@ -1012,10 +1012,10 @@
       color: var(--secondary-color);
     }
     
-    /* Date Drill-Down Section */
+    /* Date Drill-Down Section - UPDATED FOR DATE RANGE */
     .date-drilldown-section {
       margin: 20px 0;
-      padding: 15px;
+      padding: 20px;
       background: rgba(99, 171, 143, 0.05);
       border-radius: 8px;
       border: 1px solid var(--border-color);
@@ -1024,42 +1024,17 @@
     .date-drilldown-header {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      margin-bottom: 15px;
-    }
-    
-    .date-drilldown-header h3 {
-      margin: 0;
-      font-size: 16px;
-      color: var(--secondary-color);
+      align-items: flex-start;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 15px;
     }
     
     .drilldown-date-selector {
       display: flex;
-      gap: 10px;
-      align-items: center;
+      gap: 15px;
+      align-items: flex-end;
       flex-wrap: wrap;
-    }
-    
-    .drilldown-date {
-      padding: 8px 12px;
-      background: white;
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 13px;
-      transition: all 0.2s;
-    }
-    
-    .drilldown-date:hover {
-      background: rgba(99, 171, 143, 0.1);
-      border-color: var(--primary-color);
-    }
-    
-    .drilldown-date.active {
-      background: var(--primary-color);
-      color: white;
-      border-color: var(--primary-color);
     }
     
     .drilldown-details {
@@ -1649,12 +1624,22 @@
         </button>
       </div>
 
-      <!-- Date Drill-Down Section -->
+      <!-- UPDATED: Date Drill-Down Section with Date Range Selector -->
       <div class="date-drilldown-section" id="dateDrilldownSection" style="display: none;">
         <div class="date-drilldown-header">
-          <h3><i class="fas fa-calendar-alt"></i> Date Drill-Down</h3>
+          <h3><i class="fas fa-calendar-alt"></i> Date Range Drill-Down</h3>
           <div class="drilldown-date-selector" id="drilldownDateSelector">
-            <!-- Dates will be populated here -->
+            <div class="form-group" style="margin: 0; min-width: 150px;">
+              <label for="drilldownFromDate" style="font-size: 12px; margin-bottom: 4px;">From Date</label>
+              <input type="date" id="drilldownFromDate" style="padding: 6px 10px; font-size: 13px;">
+            </div>
+            <div class="form-group" style="margin: 0; min-width: 150px;">
+              <label for="drilldownToDate" style="font-size: 12px; margin-bottom: 4px;">To Date</label>
+              <input type="date" id="drilldownToDate" style="padding: 6px 10px; font-size: 13px;">
+            </div>
+            <button id="applyDrilldownBtn" class="secondary icon-btn" style="align-self: flex-end; padding: 8px 16px; font-size: 13px; white-space: nowrap;">
+              <i class="fas fa-filter"></i> Apply Filter
+            </button>
           </div>
         </div>
         <div class="drilldown-details" id="drilldownDetails">
@@ -1970,10 +1955,14 @@
     const toggleModifications = document.getElementById('toggleModifications');
     const modificationToggle = document.getElementById('modificationToggle');
     const dateDrilldownSection = document.getElementById('dateDrilldownSection');
-    const drilldownDateSelector = document.getElementById('drilldownDateSelector');
     const drilldownDetails = document.getElementById('drilldownDetails');
+    
+    // NEW: Date range selector elements
+    const drilldownFromDate = document.getElementById('drilldownFromDate');
+    const drilldownToDate = document.getElementById('drilldownToDate');
+    const applyDrilldownBtn = document.getElementById('applyDrilldownBtn');
 
-    // Forecast data storage
+    // Forecast data storage - UPDATED to include date range
     let forecastData = {
       type: 'manual',
       parameters: {},
@@ -1985,7 +1974,8 @@
       intervalView: '60',
       historicalData: null,
       applyModifications: true,
-      drilldownDate: null
+      drilldownFromDate: null,
+      drilldownToDate: null
     };
 
     // Chart instances
@@ -2107,7 +2097,7 @@
       });
     });
 
-    // View tab switching
+    // View tab switching - UPDATED for date range drilldown
     viewTabs.forEach(tab => {
       tab.addEventListener('click', function() {
         const viewName = this.getAttribute('data-view');
@@ -2129,17 +2119,20 @@
         if (viewName === 'modification') {
           intervalSelector.style.display = 'none';
           modificationToggle.style.display = 'none';
+          dateDrilldownSection.style.display = 'none';
         } else {
           intervalSelector.style.display = 'flex';
           modificationToggle.style.display = forecastData.modifications.length > 0 ? 'flex' : 'none';
-        }
-        
-        // Show/hide drilldown section
-        if (viewName === 'graphical' && forecastData.results) {
-          dateDrilldownSection.style.display = 'block';
-          updateDateDrilldown();
-        } else {
-          dateDrilldownSection.style.display = 'none';
+          
+          // Show drilldown section for graphical and table views
+          if (viewName === 'graphical' || viewName === 'table') {
+            if (forecastData.results) {
+              dateDrilldownSection.style.display = 'block';
+              initializeDateRangeDrilldown();
+            }
+          } else {
+            dateDrilldownSection.style.display = 'none';
+          }
         }
         
         // Load modification data if needed
@@ -2164,7 +2157,7 @@
         if (forecastData.results) {
           updateForecastDisplay();
           if (document.querySelector('.view-tab.active').getAttribute('data-view') === 'graphical') {
-            updateDateDrilldown();
+            updateDrilldownDetails();
           }
         }
       });
@@ -2190,7 +2183,7 @@
       forecastData.applyModifications = this.checked;
       if (forecastData.results) {
         updateForecastDisplay();
-        updateDateDrilldown();
+        updateDrilldownDetails();
       }
     });
 
@@ -2266,7 +2259,7 @@
       // Update forecast display
       updateForecastDisplay();
       updateModificationViews();
-      updateDateDrilldown();
+      updateDrilldownDetails();
     });
 
     // Apply modification to data
@@ -2473,7 +2466,7 @@
         updateModificationSummary();
         updateForecastDisplay();
         updateModificationViews();
-        updateDateDrilldown();
+        updateDrilldownDetails();
       }
     });
 
@@ -2578,7 +2571,7 @@
           showResults();
           updateForecastDisplay();
           updateModificationViews();
-          updateDateDrilldown();
+          updateDrilldownDetails();
           updateStatus('Forecast generated successfully');
         }, 500);
         
@@ -3354,53 +3347,57 @@
       }
     }
 
-    // Update date drilldown
-    function updateDateDrilldown() {
+    // NEW: Initialize date range drilldown
+    function initializeDateRangeDrilldown() {
       if (!forecastData.results) return;
       
-      // Get unique dates
+      // Get date range from results
       const dates = [...new Set(forecastData.results.map(r => r.date))].sort();
       
-      // Update date selector
-      drilldownDateSelector.innerHTML = '';
-      dates.forEach(date => {
-        const dateBtn = document.createElement('button');
-        dateBtn.className = `drilldown-date ${date === forecastData.drilldownDate ? 'active' : ''}`;
-        dateBtn.textContent = date;
-        dateBtn.addEventListener('click', () => {
-          forecastData.drilldownDate = date;
-          updateDateDrilldown();
-        });
-        drilldownDateSelector.appendChild(dateBtn);
-      });
+      if (dates.length === 0) return;
       
-      // If no date selected, select the first one
-      if (!forecastData.drilldownDate && dates.length > 0) {
-        forecastData.drilldownDate = dates[0];
-        updateDateDrilldown();
-        return;
+      // Set initial date range if not already set
+      if (!forecastData.drilldownFromDate) {
+        forecastData.drilldownFromDate = dates[0];
+        forecastData.drilldownToDate = dates[Math.min(6, dates.length - 1)]; // Default to 7 days
       }
       
-      // Update drilldown details
+      // Update date inputs
+      drilldownFromDate.value = forecastData.drilldownFromDate;
+      drilldownToDate.value = forecastData.drilldownToDate;
+      
+      // Set min/max dates
+      drilldownFromDate.min = dates[0];
+      drilldownFromDate.max = dates[dates.length - 1];
+      drilldownToDate.min = dates[0];
+      drilldownToDate.max = dates[dates.length - 1];
+      
+      // Update display
       updateDrilldownDetails();
     }
 
-    // Update drilldown details
+    // UPDATED: Update drilldown details for date range
     function updateDrilldownDetails() {
-      if (!forecastData.drilldownDate || !forecastData.results) return;
+      if (!forecastData.drilldownFromDate || !forecastData.drilldownToDate || !forecastData.results) return;
       
-      // Get data for selected date
-      let dateData = forecastData.results.filter(r => r.date === forecastData.drilldownDate);
+      // Get data for selected date range
+      let dateData = forecastData.results.filter(r => {
+        return r.date >= forecastData.drilldownFromDate && r.date <= forecastData.drilldownToDate;
+      });
       
       // Use modified or original data based on toggle
       if (!forecastData.applyModifications && forecastData.originalResults) {
-        dateData = forecastData.originalResults.filter(r => r.date === forecastData.drilldownDate);
+        dateData = forecastData.originalResults.filter(r => {
+          return r.date >= forecastData.drilldownFromDate && r.date <= forecastData.drilldownToDate;
+        });
       }
       
-      if (dateData.length === 0) return;
+      if (dateData.length === 0) {
+        drilldownDetails.innerHTML = '<p style="text-align: center; padding: 20px; color: var(--text-light);">No data available for selected date range</p>';
+        return;
+      }
       
       // Calculate metrics
-      const dayName = dateData[0].dayOfWeek;
       const totalVolume = dateData.reduce((sum, r) => sum + r.volume, 0);
       const originalVolume = dateData.reduce((sum, r) => sum + (r.originalVolume || r.volume), 0);
       const totalStaff = dateData.reduce((sum, r) => sum + r.requiredWithShrinkage, 0);
@@ -3408,33 +3405,50 @@
       const avgServiceLevel = dateData.reduce((sum, r) => sum + r.serviceLevel, 0) / dateData.length;
       const peakVolume = Math.max(...dateData.map(r => r.volume));
       const peakStaff = Math.max(...dateData.map(r => r.requiredWithShrinkage));
+      const avgAHT = dateData.reduce((sum, r) => sum + r.aht, 0) / dateData.length;
+      const totalFTE = dateData.reduce((sum, r) => sum + r.fte, 0);
+      
+      // Get unique days in range
+      const uniqueDays = [...new Set(dateData.map(r => r.date))].length;
       
       // Update metrics display
       drilldownDetails.innerHTML = `
         <div class="drilldown-metrics">
           <div class="drilldown-metric">
-            <div class="label">Day</div>
-            <div class="value">${dayName.charAt(0).toUpperCase() + dayName.slice(1)}</div>
+            <div class="label">Date Range</div>
+            <div class="value" style="font-size: 14px;">${forecastData.drilldownFromDate} to ${forecastData.drilldownToDate}</div>
+          </div>
+          <div class="drilldown-metric">
+            <div class="label">Days in Range</div>
+            <div class="value">${uniqueDays}</div>
           </div>
           <div class="drilldown-metric">
             <div class="label">Original Volume</div>
-            <div class="value">${Math.round(originalVolume)}</div>
+            <div class="value">${Math.round(originalVolume).toLocaleString()}</div>
           </div>
           <div class="drilldown-metric">
             <div class="label">${originalVolume !== totalVolume ? 'Modified' : 'Current'} Volume</div>
-            <div class="value ${originalVolume !== totalVolume ? 'modified' : ''}">${Math.round(totalVolume)}</div>
+            <div class="value ${originalVolume !== totalVolume ? 'modified' : ''}">${Math.round(totalVolume).toLocaleString()}</div>
           </div>
           <div class="drilldown-metric">
-            <div class="label">Original Staff</div>
-            <div class="value">${Math.round(originalStaff)}</div>
+            <div class="label">Original Staff Hours</div>
+            <div class="value">${Math.round(originalStaff).toLocaleString()}</div>
           </div>
           <div class="drilldown-metric">
-            <div class="label">${originalStaff !== totalStaff ? 'Adjusted' : 'Current'} Staff</div>
-            <div class="value ${originalStaff !== totalStaff ? 'modified' : ''}">${Math.round(totalStaff)}</div>
+            <div class="label">${originalStaff !== totalStaff ? 'Adjusted' : 'Current'} Staff Hours</div>
+            <div class="value ${originalStaff !== totalStaff ? 'modified' : ''}">${Math.round(totalStaff).toLocaleString()}</div>
+          </div>
+          <div class="drilldown-metric">
+            <div class="label">Total FTE</div>
+            <div class="value">${totalFTE.toFixed(1)}</div>
           </div>
           <div class="drilldown-metric">
             <div class="label">Avg Service Level</div>
             <div class="value">${(avgServiceLevel * 100).toFixed(1)}%</div>
+          </div>
+          <div class="drilldown-metric">
+            <div class="label">Avg AHT (seconds)</div>
+            <div class="value">${Math.round(avgAHT)}</div>
           </div>
           <div class="drilldown-metric">
             <div class="label">Peak Volume/Hour</div>
@@ -3454,22 +3468,57 @@
       createDrilldownChart(dateData);
     }
 
-    // Create drilldown chart
+    // UPDATED: Create drilldown chart with smart aggregation
     function createDrilldownChart(dateData) {
-      const ctx = document.getElementById('drilldownChart').getContext('2d');
+      const ctx = document.getElementById('drilldownChart');
+      if (!ctx) return;
+      
+      const context = ctx.getContext('2d');
       
       // Destroy existing chart if it exists
       if (drilldownChartInstance) {
         drilldownChartInstance.destroy();
       }
       
-      const labels = dateData.map(item => item.time);
-      const volumes = dateData.map(item => item.volume);
-      const originalVolumes = dateData.map(item => item.originalVolume || item.volume);
-      const staff = dateData.map(item => item.requiredWithShrinkage);
-      const originalStaff = dateData.map(item => item.originalStaff || item.requiredWithShrinkage);
+      // Aggregate by day if more than 7 days
+      const uniqueDays = [...new Set(dateData.map(r => r.date))].length;
+      let chartData;
+      let labels;
       
-      drilldownChartInstance = new Chart(ctx, {
+      if (uniqueDays > 7) {
+        // Aggregate by day
+        const dayMap = new Map();
+        dateData.forEach(item => {
+          if (!dayMap.has(item.date)) {
+            dayMap.set(item.date, {
+              volume: 0,
+              staff: 0,
+              count: 0
+            });
+          }
+          const day = dayMap.get(item.date);
+          day.volume += item.volume;
+          day.staff += item.requiredWithShrinkage;
+          day.count++;
+        });
+        
+        chartData = Array.from(dayMap.entries()).map(([date, data]) => ({
+          date,
+          volume: data.volume,
+          staff: Math.round(data.staff / data.count)
+        }));
+        
+        labels = chartData.map(d => d.date);
+      } else {
+        // Show hourly data
+        labels = dateData.map(item => `${item.date} ${item.time}`);
+        chartData = dateData;
+      }
+      
+      const volumes = chartData.map(item => item.volume);
+      const staff = chartData.map(item => item.staff || item.requiredWithShrinkage);
+      
+      drilldownChartInstance = new Chart(context, {
         type: 'line',
         data: {
           labels: labels,
@@ -3499,13 +3548,17 @@
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          interaction: {
+            mode: 'index',
+            intersect: false,
+          },
           plugins: {
             legend: {
               position: 'top',
             },
             title: {
               display: true,
-              text: `${forecastData.drilldownDate} - Hourly Trends`
+              text: uniqueDays > 7 ? 'Daily Aggregated View' : 'Hourly Detailed View'
             }
           },
           scales: {
@@ -3516,7 +3569,8 @@
               title: {
                 display: true,
                 text: 'Volume'
-              }
+              },
+              beginAtZero: true
             },
             y1: {
               type: 'linear',
@@ -3526,9 +3580,16 @@
                 display: true,
                 text: 'Staff Required'
               },
+              beginAtZero: true,
               grid: {
                 drawOnChartArea: false,
               },
+            },
+            x: {
+              ticks: {
+                maxTicksLimit: uniqueDays > 7 ? 15 : 24,
+                autoSkip: true
+              }
             }
           }
         }
@@ -3677,7 +3738,8 @@
         intervalView: '60',
         historicalData: null,
         applyModifications: true,
-        drilldownDate: null
+        drilldownFromDate: null,
+        drilldownToDate: null
       };
       
       // Reset form values
@@ -3768,6 +3830,40 @@
       link.download = `forecast_${interval}_${new Date().toISOString().split('T')[0]}.csv`;
       link.click();
     }
+
+    // NEW: Event listener for apply drilldown button
+    applyDrilldownBtn.addEventListener('click', function() {
+      const fromDate = drilldownFromDate.value;
+      const toDate = drilldownToDate.value;
+      
+      if (!fromDate || !toDate) {
+        alert('Please select both From and To dates');
+        return;
+      }
+      
+      if (fromDate > toDate) {
+        alert('From date cannot be after To date');
+        return;
+      }
+      
+      forecastData.drilldownFromDate = fromDate;
+      forecastData.drilldownToDate = toDate;
+      
+      updateDrilldownDetails();
+    });
+
+    // NEW: Event listeners for date inputs to auto-validate
+    drilldownFromDate.addEventListener('change', function() {
+      if (drilldownToDate.value && this.value > drilldownToDate.value) {
+        drilldownToDate.value = this.value;
+      }
+    });
+
+    drilldownToDate.addEventListener('change', function() {
+      if (drilldownFromDate.value && this.value < drilldownFromDate.value) {
+        drilldownFromDate.value = this.value;
+      }
+    });
 
     // Event Listeners
     generateForecastBtn.addEventListener('click', generateForecast);
